@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulador Avanzado SAFE - Motor Canvas</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; }
+        body { background-color: #0b0f19; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #gameCanvas { background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); box-shadow: 0 0 30px rgba(0, 163, 255, 0.2); max-width: 100%; max-height: 100%; }
+        #ai-overlay { position: absolute; top: 10px; right: 10px; background: rgba(0, 255, 136, 0.1); border: 1px solid #00ff88; color: #00ff88; padding: 10px; border-radius: 8px; font-size: 12px; pointer-events: none; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="400" height="700"></canvas>
+<div id="ai-overlay">Auditor IA: <span>Analizando...</span></div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const aiText = document.querySelector('#ai-overlay span');
+
+    // === IA AUDITORA (Heurística de Comportamiento) ===
+    const AI_Auditor = {
+        hesitationCounter: 0,
+        lastMousePos: { x: 0, y: 0 },
+        scrubSpeedLog: [],
+        trackMovement: function(x, y) {
+            let dx = x - this.lastMousePos.x;
+            let dy = y - this.lastMousePos.y;
+            let speed = Math.sqrt(dx*dx + dy*dy);
+            if (speed > 0 && speed < 2) this.hesitationCounter++; // Movimientos dudosos
+            if (speed > 20) this.scrubSpeedLog.push(speed); // Velocidad de fricción
+            this.lastMousePos = { x, y };
+        },
+        getReport: function() {
+            let avgSpeed = this.scrubSpeedLog.length > 0 ? this.scrubSpeedLog.reduce((a,b)=>a+b)/this.scrubSpeedLog.length : 0;
+            let profile = "Estándar";
+            if (this.hesitationCounter > 50) profile = "Inseguro (Requiere más estudio del POE)";
+            if (avgSpeed > 40) profile = "Agresivo (Riesgo de romper empaques/prendas)";
+            if (this.hesitationCounter < 15 && avgSpeed > 15 && avgSpeed < 35) profile = "Óptimo (Movimientos firmes y seguros)";
+            return `Perfil Operativo: ${profile}`;
+        }
+    };
+
+    // === MOTOR DEL JUEGO ===
+    let game = {
+        state: 'START', // START, PLAY, REPORT
+        step: 0,
+        score: 0,
+        maxScore: 75, // 15 pasos x 5
+        report: [],
+        particles: [],
+        progress: 0, // Para acciones de fricción
+        isDragging: false,
+        dragItem: null,
+        animFrame: 0
+    };
+
+    // Base de datos del POE (15 pasos exactos)
+    const stepsData = [
+        { type: 'click', name: "1. Ingreso", desc: "Toca: Cubrebocas, Cofia, Zapatones", targets: ["😷", "👲", "👟"], req: 3 },
+        { type: 'scrub', name: "2. Lavado", desc: "Frota las manos rápidamente" },
+        { type: 'scrub', name: "3. Secado", desc: "Frota hasta secar (elimina agua)" },
+        { type: 'scrub', name: "4. Gel", desc: "Aplica gel frotando" },
+        { type: 'drag', name: "5. Guantes Inic.", desc: "Arrastra desde la parte correcta", item: "🧤" },
+        { type: 'click', name: "6. Revisión", desc: "Verifica Talla/Esterilidad ANTES de abrir", targets: ["🔍 Sello", "📦 Abrir"], req: 2 },
+        { type: 'click', name: "7. Sanitización", desc: "Toca el Alcohol", targets: ["🧴 Alcohol"], req: 1 },
+        { type: 'drag', name: "8. Escafandra", desc: "Arrastra desde la parte interna", item: "🥷" },
+        { type: 'click', name: "9. Sanitización", desc: "Toca el Alcohol", targets: ["🧴 Alcohol"], req: 1 },
+        { type: 'drag', name: "10. Overol", desc: "Cuidado de no arrastrarlo al suelo", item: "🥼", checkFloor: true },
+        { type: 'click', name: "11. Sanitización", desc: "Toca el Alcohol", targets: ["🧴 Alcohol"], req: 1 },
+        { type: 'drag', name: "12. Zapatones Est.", desc: "Sujeta internamente", item: "🥾" },
+        { type: 'click', name: "13. Sanitización", desc: "Toca el Alcohol", targets: ["🧴 Alcohol"], req: 1 },
+        { type: 'drag', name: "14. Goggles", desc: "Sujeta sin tocar cara", item: "🥽" },
+        { type: 'click', name: "15. Sanitación Fin.", desc: "Toca el Alcohol", targets: ["🧴 Alcohol"], req: 1 }
+    ];
+
+    // Objetos en pantalla según el estado
+    let activeUI = [];
+
+    // === SISTEMA DE DIBUJO (RENDERIZADO) ===
+    function drawCharacter() {
+        // Animación de respiración básica usando el tiempo
+        let breath = Math.sin(Date.now() / 300) * 2;
+        
+        ctx.fillStyle = '#cbd5e1';
+        // Cabeza
+        ctx.beginPath(); ctx.arc(200, 200 + breath, 30, 0, Math.PI * 2); ctx.fill();
+        // Cuerpo
+        ctx.fillRect(170, 240 + breath, 60, 100);
+        // Brazos (posicionados según el paso)
+        ctx.fillRect(130, 240 + breath, 30, 80);
+        ctx.fillRect(240, 240 + breath, 30, 80);
+        
+        // Mesa de trabajo
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(50, 450, 300, 150);
+    }
+
+    function drawUI() {
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        
+        if (game.state === 'START') {
+            ctx.fillText("SIMULADOR SAFE - ÁREA ASÉPTICA", 200, 300);
+            ctx.font = '16px Arial';
+            ctx.fillText("Toca para iniciar", 200, 350);
+            return;
+        }
+
+        if (game.state === 'REPORT') {
+            ctx.fillText("REPORTE GESSM-F02-I156-GRL", 200, 100);
+            ctx.font = '14px Arial';
+            ctx.fillStyle = game.score >= game.maxScore ? '#00ff88' : '#ff4444';
+            ctx.fillText(`Puntaje: ${game.score} / ${game.maxScore}`, 200, 140);
+            
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'left';
+            let y = 180;
+            game.report.forEach((r, i) => {
+                ctx.fillText(`Paso ${i+1}: ${r.pts} pts`, 50, y);
+                y += 20;
+            });
+            ctx.fillStyle = '#00aaff';
+            ctx.fillText(AI_Auditor.getReport(), 50, y + 20);
+            ctx.fillText("Toca para reiniciar", 200, 650);
+            return;
+        }
+
+        // Estado PLAY
+        let current = stepsData[game.step];
+        ctx.fillText(current.name, 200, 50);
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText(current.desc, 200, 80);
+
+        drawCharacter();
+
+        // Dibujar elementos interactivos
+        activeUI.forEach(el => {
+            if (el.type === 'button') {
+                ctx.fillStyle = el.clicked ? '#00ff88' : '#475569';
+                ctx.fillRect(el.x, el.y, el.w, el.h);
+                ctx.fillStyle = 'white';
+                ctx.fillText(el.text, el.x + el.w/2, el.y + el.h/2 + 5);
+            } 
+            else if (el.type === 'scrub_zone') {
+                ctx.strokeStyle = '#00aaff';
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(el.x, el.y, el.w, el.h);
+                ctx.setLineDash([]);
+                // Barra de progreso
+                ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                ctx.fillRect(el.x, el.y - 20, el.w, 10);
+                ctx.fillStyle = '#00ff88';
+                ctx.fillRect(el.x, el.y - 20, (game.progress / 100) * el.w, 10);
+            }
+            else if (el.type === 'garment') {
+                // Dibujar zona externa (Riesgo) y zona interna (Segura)
+                ctx.fillStyle = 'rgba(255, 165, 0, 0.5)'; // Naranja - Externa
+                ctx.fillRect(el.x, el.y, el.w, el.h);
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.6)'; // Verde - Interna
+                ctx.fillRect(el.x + 10, el.y + 10, el.w - 20, el.h/2 - 10);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '40px Arial';
+                ctx.fillText(el.item, el.x + el.w/2, el.y + el.h/2 + 15);
+            }
+        });
+
+        // Partículas (Espuma, Agua)
+        game.particles.forEach((p, i) => {
+            ctx.fillStyle = p.color;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
+            p.x += p.vx; p.y += p.vy; p.alpha -= 0.05;
+            if(p.alpha <= 0) game.particles.splice(i, 1);
+        });
+    }
+
+    // === LÓGICA DE NIVELES ===
+    function loadStep() {
+        activeUI = [];
+        game.progress = 0;
+        let current = stepsData[game.step];
+        aiText.innerText = "Analizando postura...";
+
+        if (current.type === 'click') {
+            let startX = 60;
+            current.targets.forEach(t => {
+                activeUI.push({ type: 'button', text: t, x: startX, y: 500, w: 80, h: 60, clicked: false });
+                startX += 90;
+            });
+            activeUI.push({ type: 'action_btn', text: 'Continuar', x: 150, y: 600, w: 100, h: 40 });
+        } 
+        else if (current.type === 'scrub') {
+            activeUI.push({ type: 'scrub_zone', x: 100, y: 220, w: 200, h: 100 });
+            activeUI.push({ type: 'action_btn', text: 'Terminar', x: 150, y: 600, w: 100, h: 40 });
+        }
+        else if (current.type === 'drag') {
+            activeUI.push({ type: 'garment', item: current.item, x: 150, y: 480, w: 100, h: 100, 
+                            hitboxInner: {x: 160, y: 490, w: 80, h: 40}, 
+                            hitboxOuter: {x: 150, y: 530, w: 100, h: 50} });
+        }
+    }
+
+    function advance(pts) {
+        game.report.push({ pts: pts });
+        game.score += pts;
+        game.step++;
+        if (game.step >= stepsData.length) game.state = 'REPORT';
+        else loadStep();
+    }
+
+    // === CONTROLES FÍSICOS (Mouse & Touch) ===
+    function handleInputStart(x, y) {
+        if (game.state === 'START') { game.state = 'PLAY'; loadStep(); return; }
+        if (game.state === 'REPORT') { location.reload(); return; }
+
+        let current = stepsData[game.step];
+
+        // Revisar botones
+        activeUI.forEach(el => {
+            if (el.type === 'button' && x > el.x && x < el.x + el.w && y > el.y && y < el.y + el.h) {
+                el.clicked = true;
+            }
+            if (el.type === 'action_btn' && x > el.x && x < el.x + el.w && y > el.y && y < el.y + el.h) {
+                if (current.type === 'click') {
+                    let clicks = activeUI.filter(u => u.type === 'button' && u.clicked).length;
+                    if (current.name.includes("Revisión") && clicks === 2 && activeUI[0].clickedPrimero) {
+                        advance(5); // Revisó sello antes de abrir
+                    } else if (clicks === current.req) advance(5);
+                    else advance(0);
+                } else if (current.type === 'scrub') {
+                    if (game.progress >= 100) advance(5);
+                    else advance(0);
+                }
+            }
+        });
+
+        // Revisar Drag (Agarre de prendas)
+        if (current.type === 'drag') {
+            let g = activeUI.find(u => u.type === 'garment');
+            if (x > g.x && x < g.x + g.w && y > g.y && y < g.y + g.h) {
+                game.isDragging = true;
+                game.dragItem = g;
+                // ¿De dónde lo agarró?
+                if (y < g.y + g.h/2) g.grabZone = 'inner'; // 5 pts
+                else g.grabZone = 'outer'; // 3 pts
+                aiText.innerText = `Agarre detectado: ${g.grabZone}`;
+            }
+        }
+    }
+
+    function handleInputMove(x, y) {
+        AI_Auditor.trackMovement(x, y);
+
+        if (game.state !== 'PLAY') return;
+        let current = stepsData[game.step];
+
+        // Lógica de Fricción
+        if (current.type === 'scrub') {
+            let zone = activeUI.find(u => u.type === 'scrub_zone');
+            if (x > zone.x && x < zone.x + zone.w && y > zone.y && y < zone.y + zone.h) {
+                game.progress += 2;
+                if (game.progress > 100) game.progress = 100;
+                // Generar partículas
+                game.particles.push({ x: x + Math.random()*20-10, y: y + Math.random()*20-10, vx: Math.random()*2-1, vy: Math.random()*2-1, r: Math.random()*4+2, color: current.name.includes("Secado") ? '#cbd5e1' : '#00aaff', alpha: 1 });
+            }
+        }
+
+        // Lógica de Arrastre Físico
+        if (game.isDragging && game.dragItem) {
+            game.dragItem.x = x - game.dragItem.w/2;
+            game.dragItem.y = y - game.dragItem.h/2;
+            
+            // Regla crítica: Si el overol toca el suelo (> 600 en Y)
+            if (current.checkFloor && game.dragItem.y > 550) {
+                game.dragItem.grabZone = 'floor';
+                aiText.innerText = "¡ALERTA! Prenda tocó el suelo.";
+            }
+        }
+    }
+
+    function handleInputEnd(x, y) {
+        if (game.isDragging && game.dragItem) {
+            // Verificar si lo soltó sobre el personaje (Cuerpo = Y entre 200 y 350)
+            if (y > 150 && y < 400) {
+                if (game.dragItem.grabZone === 'inner') advance(5);
+                else if (game.dragItem.grabZone === 'outer') advance(3);
+                else advance(0); // floor o arrastre incorrecto
+            } else {
+                // Regresarlo a la mesa
+                game.dragItem.x = 150; game.dragItem.y = 480;
+            }
+            game.isDragging = false;
+            game.dragItem = null;
+        }
+    }
+
+    // Event Listeners (Unificados Mouse / Touch)
+    canvas.addEventListener('mousedown', e => handleInputStart(e.offsetX, e.offsetY));
+    canvas.addEventListener('mousemove', e => handleInputMove(e.offsetX, e.offsetY));
+    window.addEventListener('mouseup', e => handleInputEnd(e.offsetX, e.offsetY));
+
+    canvas.addEventListener('touchstart', e => {
+        let rect = canvas.getBoundingClientRect();
+        handleInputStart(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+    });
+    canvas.addEventListener('touchmove', e => {
+        let rect = canvas.getBoundingClientRect();
+        handleInputMove(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top);
+    });
+    window.addEventListener('touchend', e => handleInputEnd(0, 0));
+
+    // Bucle principal a 60 FPS
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawUI();
+        requestAnimationFrame(gameLoop);
+    }
+    
+    // Iniciar
+    gameLoop();
+</script>
+</body>
+</html>
