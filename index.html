@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SAFE - Cleanroom Simulator</title>
+    <title>SAFE - Cleanroom Training Center</title>
     <style>
         :root {
             --floor: #e2e8f0; --wall: #1e293b; --table: #94a3b8;
@@ -18,9 +18,74 @@
             align-items: center; justify-content: center; height: 100vh; overflow: hidden;
         }
 
+        /* --- PANTALLA DE INICIO --- */
+        #start-screen {
+            background: var(--wall); width: 100%; max-width: 450px; padding: 30px;
+            border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            text-align: center; border: 2px solid #334155;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        .main-title { font-size: 24px; font-weight: bold; color: #38bdf8; margin-bottom: 5px; }
+        .mode-btn {
+            background: #334155; color: white; border: 2px solid #475569; padding: 15px;
+            border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;
+            transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .mode-btn:active { transform: scale(0.95); }
+        .mode-btn.play { border-color: #10b981; } .mode-btn.play:hover { background: #065f46; }
+        .mode-btn.exam { border-color: #f59e0b; } .mode-btn.exam:hover { background: #92400e; }
+        .mode-btn.poe { border-color: #8b5cf6; } .mode-btn.poe:hover { background: #4c1d95; }
+
+        /* --- VISOR DEL FORMATO ORIGINAL (POE) --- */
+        #poe-wrapper {
+            background: white; width: 100%; max-width: 500px; height: 95vh; max-height: 850px;
+            border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            display: none; flex-direction: column; color: black; overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .poe-header {
+            background: #e2e8f0; border-bottom: 2px solid #94a3b8; padding: 15px; text-align: center;
+        }
+        .poe-header h3 { font-size: 14px; margin-bottom: 5px; color: #334155; }
+        .poe-header p { font-size: 11px; color: #475569; font-weight: bold; }
+        .poe-content {
+            flex: 1; overflow-y: auto; padding: 20px; font-size: 12px; line-height: 1.5;
+        }
+        .poe-section { border: 1px solid #cbd5e1; padding: 15px; margin-bottom: 15px; background: #f8fafc; }
+        .poe-section h4 { background: #cbd5e1; padding: 5px; text-align: center; margin: -15px -15px 10px -15px; font-size: 12px; }
+        .poe-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .poe-table th, .poe-table td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
+        .poe-table th { background: #e2e8f0; text-align: center; }
+        .poe-table .num { font-weight: bold; text-align: center; width: 30px; }
+        .poe-table .pts { font-weight: bold; text-align: center; width: 40px; color: #0284c7; }
+        .poe-table .main-step { background: #f1f5f9; font-weight: bold; text-align: center; }
+        .poe-footer-bar { padding: 15px; background: white; border-top: 1px solid #cbd5e1; text-align: center; }
+
+        /* --- MODO EVALUACIÓN (EXAMEN) --- */
+        #exam-wrapper {
+            background: #f8fafc; width: 100%; max-width: 450px; height: 95vh; max-height: 800px;
+            border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            display: none; flex-direction: column; color: #0f172a; overflow: hidden;
+        }
+        .exam-header { background: #1e293b; color: white; padding: 15px; text-align: center; font-weight: bold; }
+        .question-container { padding: 20px; flex: 1; overflow-y: auto; }
+        .question-text { font-size: 15px; font-weight: bold; margin-bottom: 20px; line-height: 1.4; color: #1e293b; }
+        .option-btn {
+            background: white; border: 2px solid #cbd5e1; padding: 15px; margin-bottom: 12px;
+            border-radius: 8px; text-align: left; font-size: 13px; cursor: pointer;
+            transition: all 0.2s; color: #334155; line-height: 1.4; font-weight: 500;
+        }
+        .option-btn.correct { background: #dcfce7; border-color: #22c55e; color: #166534; font-weight: bold; }
+        .option-btn.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .option-btn:disabled { cursor: not-allowed; }
+        
+        .exam-footer { padding: 15px; border-top: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; background: white;}
+        .next-btn { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: none; }
+
+        /* --- MODO JUEGO (SIMULADOR) --- */
         #game-wrapper {
             background: var(--wall); width: 100%; max-width: 450px; border-radius: 12px; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8); overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8); overflow: hidden; display: none; flex-direction: column;
             border: 2px solid #334155;
         }
 
@@ -30,71 +95,40 @@
         }
         
         .header-row { display: flex; justify-content: space-between; align-items: center; }
-        
-        #inventory-bar {
-            display: flex; gap: 5px; height: 30px; background: #1e293b; padding: 2px; border-radius: 4px;
-        }
+        #inventory-bar { display: flex; gap: 5px; height: 30px; background: #1e293b; padding: 2px; border-radius: 4px; }
         .inv-slot { width: 26px; height: 26px; background: #334155; border-radius: 4px; padding: 2px; }
 
         #game-screen {
             width: 100%; aspect-ratio: 1/1; background: var(--floor); position: relative;
-            background-image: 
-                linear-gradient(rgba(148, 163, 184, 0.3) 1px, transparent 1px), 
-                linear-gradient(90deg, rgba(148, 163, 184, 0.3) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(148, 163, 184, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.3) 1px, transparent 1px);
             background-size: var(--tile) var(--tile);
         }
 
-        .furniture {
-            position: absolute; background: linear-gradient(145deg, #cbd5e1, #94a3b8);
-            border: 2px solid #64748b; border-radius: 4px; box-shadow: 3px 3px 8px rgba(0,0,0,0.2);
-        }
-        
-        .entity {
-            width: var(--tile); height: var(--tile); position: absolute;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; z-index: 15; transition: transform 0.1s;
-        }
+        .furniture { position: absolute; background: linear-gradient(145deg, #cbd5e1, #94a3b8); border: 2px solid #64748b; border-radius: 4px; box-shadow: 3px 3px 8px rgba(0,0,0,0.2); }
+        .entity { width: var(--tile); height: var(--tile); position: absolute; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 15; transition: transform 0.1s; }
         .entity:active { transform: scale(0.85); }
         .entity svg { width: 80%; height: 80%; filter: drop-shadow(2px 3px 2px rgba(0,0,0,0.3)); pointer-events: none; }
 
         @media (hover: hover) {
             .entity:hover::after {
-                content: attr(data-name);
-                position: absolute; bottom: 100%; left: 50%;
-                transform: translateX(-50%) translateY(-5px);
-                background: rgba(15, 23, 42, 0.9); color: white; padding: 4px 8px; border-radius: 4px;
-                font-size: 11px; white-space: nowrap; pointer-events: none; z-index: 20; box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-                animation: fadeIn 0.2s forwards;
+                content: attr(data-name); position: absolute; bottom: 100%; left: 50%;
+                transform: translateX(-50%) translateY(-5px); background: rgba(15, 23, 42, 0.9); color: white; padding: 4px 8px; border-radius: 4px;
+                font-size: 11px; white-space: nowrap; pointer-events: none; z-index: 20; box-shadow: 0 2px 5px rgba(0,0,0,0.5); animation: fadeIn 0.2s forwards;
             }
         }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Menú de Acción */
         #action-menu {
-            position: absolute; background: white; border: 2px solid var(--accent);
-            border-radius: 8px; padding: 8px; display: none; flex-direction: column;
-            align-items: center; gap: 6px; z-index: 50; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            transform: translate(-50%, -110%);
+            position: absolute; background: white; border: 2px solid var(--accent); border-radius: 8px; padding: 8px; display: none; flex-direction: column;
+            align-items: center; gap: 6px; z-index: 50; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transform: translate(-50%, -110%);
         }
-        #action-menu::after {
-            content: ''; position: absolute; top: 100%; left: 50%; margin-left: -6px;
-            border-width: 6px; border-style: solid; border-color: var(--accent) transparent transparent transparent;
-        }
+        #action-menu::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -6px; border-width: 6px; border-style: solid; border-color: var(--accent) transparent transparent transparent; }
         #action-title { font-size: 12px; color: #0f172a; font-weight: bold; white-space: nowrap; }
         .action-btns { display: flex; gap: 8px; }
-        .btn-act { 
-            padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; 
-            font-size: 12px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center;
-        }
-        .btn-yes { background: #16a34a; } .btn-yes:active { background: #15803d; }
-        .btn-no { background: #dc2626; } .btn-no:active { background: #b91c1c; }
+        .btn-act { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; font-size: 12px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; }
+        .btn-yes { background: #16a34a; } .btn-no { background: #dc2626; }
 
-        /* Jugador */
-        #player {
-            width: var(--tile); height: var(--tile); position: absolute; z-index: 10;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: top 0.25s linear, left 0.25s linear;
-        }
+        #player { width: var(--tile); height: var(--tile); position: absolute; z-index: 10; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: top 0.25s linear, left 0.25s linear; }
         #player svg { width: 90%; height: 90%; filter: drop-shadow(0px 6px 4px rgba(0,0,0,0.4)); transition: all 0.2s; }
         
         .walking svg { animation: walkCycle 0.25s infinite alternate ease-in-out; }
@@ -104,15 +138,9 @@
         .error-blink svg { animation: errorBlink 0.8s infinite; }
         @keyframes errorBlink { 50% { filter: drop-shadow(0 0 8px red); } }
 
-        #dialogue-box {
-            background: #f8fafc; padding: 15px; height: 90px;
-            font-size: 14px; font-weight: bold; color: #0f172a; line-height: 1.4;
-            display: flex; align-items: center; text-align: left; border-top: 3px solid #cbd5e1;
-        }
-        #report-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f8fafc;
-            color: #0f172a; z-index: 100; display: none; flex-direction: column; padding: 20px; overflow-y: auto;
-        }
+        #dialogue-box { background: #f8fafc; padding: 15px; height: 90px; font-size: 14px; font-weight: bold; color: #0f172a; line-height: 1.4; display: flex; align-items: center; text-align: left; border-top: 3px solid #cbd5e1; }
+        
+        #report-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #f8fafc; color: #0f172a; z-index: 100; display: none; flex-direction: column; padding: 20px; overflow-y: auto; }
         .report-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #cbd5e1; font-size: 13px; }
         .score-good { color: #16a34a; font-weight: bold; }
         .score-bad { color: #dc2626; font-weight: bold; }
@@ -120,11 +148,216 @@
 </head>
 <body>
 
+<!-- PANTALLA DE INICIO -->
+<div id="start-screen">
+    <div class="main-title">SAFE TRAINING<br><span style="font-size: 14px; color: #94a3b8;">Centro de Mezclas</span></div>
+    
+    <button class="mode-btn play" onclick="startMode('game')">
+        <span style="font-size: 24px;">🎮</span>
+        Simulador Práctico
+        <span style="font-size: 11px; font-weight: normal; color: #cbd5e1;">Aplica la técnica interactuando en los vestidores (17 Pasos).</span>
+    </button>
+    
+    <button class="mode-btn exam" onclick="startMode('exam')">
+        <span style="font-size: 24px;">📝</span>
+        Examen Teórico
+        <span style="font-size: 11px; font-weight: normal; color: #cbd5e1;">Evaluación Aleatoria Completa (Dificultad Extrema).</span>
+    </button>
+    
+    <button class="mode-btn poe" onclick="startMode('poe')">
+        <span style="font-size: 24px;">📄</span>
+        Consultar POE Original
+        <span style="font-size: 11px; font-weight: normal; color: #cbd5e1;">Lectura del formato GESSM-F02-I156-GRL (4 Páginas).</span>
+    </button>
+</div>
+
+<!-- MODO VISOR POE (4 Páginas Completas) -->
+<div id="poe-wrapper">
+    <div class="poe-header">
+        <div style="float:left; font-weight:bold; color:#0f172a;">SAFE</div>
+        <div style="float:right; font-size:11px;">Versión 06</div>
+        <div style="clear:both;"></div>
+        <h3>GESSM-F02-I156-GRL</h3>
+        <p>EVALUACIÓN PRÁCTICA DE LA TÉCNICA DE VESTIDO PARA ÁREAS ASÉPTICAS UTILIZANDO BAJO UNIFORME Y UNIFORME ESTÉRIL DESECHABLE TLT</p>
+    </div>
+    <div class="poe-content">
+        <div class="poe-section">
+            <h4>PRERREQUISITOS DE TÉCNICA DE VESTIDO</h4>
+            <ol style="margin-left: 20px;">
+                <li>El colaborador no tiene cabello expuesto fuera de la cofia.</li>
+                <li>No porta maquillaje y accesorios.</li>
+                <li>No tiene barba y tiene patillas cortas (aprox. a la mitad de la oreja).</li>
+                <li>Tiene uñas cortas y libres de esmalte.</li>
+                <li>No presenta heridas expuestas.</li>
+            </ol>
+            <p style="margin-top:10px; color:#b91c1c;"><strong>NOTA:</strong> Si el colaborador no cumple con al menos un prerrequisito, se deberá detener la técnica de vestido y notificar al jefe inmediato vía correo electrónico para reagendar la técnica.</p>
+        </div>
+
+        <div class="poe-section">
+            <h4>INSTRUCCIONES</h4>
+            <p>Se verificará que las actividades se realicen de acuerdo con la secuencia indicada... El evaluador asignará los puntos de la siguiente manera, según la realización de la actividad.</p>
+            <br>
+            <p><strong>La técnica se podrá suspender si:</strong></p>
+            <ul style="margin-left: 20px;">
+                <li>No se cumplen los prerrequisitos mencionados arriba.</li>
+                <li>Si el personal no realiza el lavado de manos.</li>
+                <li>Si se rompe el overol estéril durante la técnica.</li>
+                <li>Si el personal se recarga en la pared al colocarse el overol o si se sientan en la banca del vestidor.</li>
+                <li>Si el personal toca el bote de basura al desechar la envoltura de su overol.</li>
+            </ul>
+            <br>
+            <p><strong>Durante la evaluación se asignarán los siguientes puntajes:</strong></p>
+            <ul style="margin-left: 20px;">
+                <li><strong>5 puntos:</strong> Realiza la actividad conforme se indica en la instrucción correspondiente, tiene habilidad en la técnica, sin cometer errores.</li>
+                <li><strong>3 puntos:</strong> Realiza la actividad conforme se indica en la instrucción correspondiente, tiene habilidad en la técnica, pero se detectan errores.</li>
+                <li><strong>0 puntos:</strong> No realiza la actividad conforme se indica en la instrucción correspondiente o no se ejecuta.</li>
+            </ul>
+        </div>
+
+        <table class="poe-table">
+            <thead><tr><th class="num">NO</th><th>ACTIVIDAD</th><th class="pts">PTS</th></tr></thead>
+            <tbody>
+                <tr><td colspan="3" class="main-step">1 INGRESO AL VESTIDOR 1</td></tr>
+                <tr><td class="num">1.1</td><td>Porta cubrebocas, cofia y se coloca los zapatones.</td><td class="pts">5</td></tr>
+                <tr><td class="num">1.2</td><td>Le hace falta al menos un elemento, pero se los coloca para continuar con la técnica.</td><td class="pts">3</td></tr>
+                <tr><td class="num">1.3</td><td>No porta ningún elemento.</td><td class="pts">0</td></tr>
+                
+                <tr><td colspan="3" class="main-step">2 LAVADO DE MANOS (VESTIDOR 1)</td></tr>
+                <tr><td class="num">2.1</td><td>Su técnica de lavado de manos sigue la secuencia establecida y no deja residuos de jabón.</td><td class="pts">5</td></tr>
+                <tr><td class="num">2.2</td><td>Su técnica de lavado de manos sigue la secuencia establecida, pero deja residuos de jabón.</td><td class="pts">3</td></tr>
+                <tr><td class="num">2.3</td><td>No realiza el lavado de manos.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">3 SECADO DE MANOS (VESTIDOR 1)</td></tr>
+                <tr><td class="num">3.1</td><td>Seca las manos en su totalidad y no quedan gotas de agua.</td><td class="pts">5</td></tr>
+                <tr><td class="num">3.2</td><td>Seca las manos parcialmente, se observan gotas de agua en la superficie de las palmas y dorso de las manos.</td><td class="pts">3</td></tr>
+                <tr><td class="num">3.3</td><td>No seca las manos.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">4 SANITIZADO DE MANOS (VESTIDOR 1)</td></tr>
+                <tr><td class="num">4.1</td><td>Aplica gel y distribuye de manera uniforme en sus manos incluyendo pliegues.</td><td class="pts">5</td></tr>
+                <tr><td class="num">4.2</td><td>Aplica gel, pero no lo distribuye entre pliegues y dedos.</td><td class="pts">3</td></tr>
+                <tr><td class="num">4.3</td><td>No aplica gel.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">5 COLOCACIÓN DE GUANTES INICIALES (VESTIDOR 2)</td></tr>
+                <tr><td class="num">5.1</td><td>Verifica la talla, al colocarlos evita tocar parte externa de los guantes y no se rompen.</td><td class="pts">5</td></tr>
+                <tr><td class="num">5.2</td><td>Verifica la talla y al colocarlos toca la parte externa.</td><td class="pts">3</td></tr>
+                <tr><td class="num">5.3</td><td>No verifica talla, toca la parte externa y se rompen.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">6 REVISIÓN DE UNIFORME (VESTIDOR 3)</td></tr>
+                <tr><td class="num">6.1</td><td>Muestra al analista la talla y esterilidad para verificarla, además abre el empaque sin tocar la parte interna.</td><td class="pts">5</td></tr>
+                <tr><td class="num">6.2</td><td>Muestra al analista la talla y esterilidad para verificarla, pero al abrir el empaque, toca la parte interna.</td><td class="pts">3</td></tr>
+                <tr><td class="num">6.3</td><td>No verifica talla ni esterilidad y al abrir, toca la parte externa.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">7 SANITIZACIÓN DE MANOS ENGUANTADAS (VESTIDOR 3)</td></tr>
+                <tr><td class="num">7.1</td><td>Verifica la vigencia del alcohol y sanitiza sus guantes después de manipular la envoltura de su uniforme.</td><td class="pts">5</td></tr>
+                <tr><td class="num">7.2</td><td>No sanitiza sus guantes después de manipular la envoltura, sin embargo, rectifica y lo corrige.</td><td class="pts">3</td></tr>
+                <tr><td class="num">7.3</td><td>No lo hace.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">8 COLOCACIÓN DE ESCAFANDRA (VESTIDOR 3)</td></tr>
+                <tr><td class="num">8.1</td><td>Toma la escafandra por la parte interna, la amarra correctamente y no tapa su visión.</td><td class="pts">5</td></tr>
+                <tr><td class="num">8.2</td><td>Toma la escafandra por la parte interna, pero tapa su visión y la corrige manipulando por la parte externa.</td><td class="pts">3</td></tr>
+                <tr><td class="num">8.3</td><td>Toma la escafandra por la parte externa, tapa su visión y no lo corrige.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">9 SANITIZACIÓN DE MANOS ENGUANTADAS (VESTIDOR 3)</td></tr>
+                <tr><td class="num">9.1</td><td>Sanitiza sus guantes con alcohol estéril después de manipular la escafandra.</td><td class="pts">5</td></tr>
+                <tr><td class="num">9.2</td><td>No sanitiza sus guantes después de manipular la escafandra, sin embargo, rectifica y lo corrige.</td><td class="pts">3</td></tr>
+                <tr><td class="num">9.3</td><td>No lo hace.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">10 COLOCACIÓN DE OVEROL (VESTIDOR 3)</td></tr>
+                <tr><td class="num">10.1</td><td>Manipula el overol por la parte interna y no arrastra mangas o piernas y rectifica su colocación.</td><td class="pts">5</td></tr>
+                <tr><td class="num">10.2</td><td>Manipula el overol por la parte externa, pero no arrastra mangas ni piernas.</td><td class="pts">3</td></tr>
+                <tr><td class="num">10.3</td><td>Manipula el overol por la parte externa, arrastra mangas o piernas y no rectifica su colocación.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">11 SANITIZACIÓN DE MANOS ENGUANTADAS (VESTIDOR 3)</td></tr>
+                <tr><td class="num">11.1</td><td>Sanitiza sus guantes con alcohol estéril después de manipular el overol.</td><td class="pts">5</td></tr>
+                <tr><td class="num">11.2</td><td>No sanitiza sus guantes después de manipular el overol, sin embargo rectifica y lo corrige.</td><td class="pts">3</td></tr>
+                <tr><td class="num">11.3</td><td>No lo hace.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">12 COLOCACIÓN DE ZAPATONES (VESTIDOR 3)</td></tr>
+                <tr><td class="num">12.1</td><td>Coloca el zapatón por la parte interna y no toca su calzado, lo sujeta correctamente.</td><td class="pts">5</td></tr>
+                <tr><td class="num">12.2</td><td>Coloca el zapatón por la parte interna pero no lo sujeta correctamente.</td><td class="pts">3</td></tr>
+                <tr><td class="num">12.3</td><td>Al colocar el zapatón, toca la parte externa y pisa del lado del área gris.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">13 SANITIZACIÓN DE MANOS ENGUANTADAS (VESTIDOR 3)</td></tr>
+                <tr><td class="num">13.1</td><td>Sanitiza sus guantes con alcohol estéril después de manipular los zapatones.</td><td class="pts">5</td></tr>
+                <tr><td class="num">13.2</td><td>No sanitiza sus guantes después de manipular los zapatones, sin embargo rectifica y lo corrige.</td><td class="pts">3</td></tr>
+                <tr><td class="num">13.3</td><td>No lo hace.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">14 COLOCACIÓN DE GOGGLES (VESTIDOR 3)</td></tr>
+                <tr><td class="num">14.1</td><td>Verifica la vigencia y coloca los goggles sin tocar la escafandra, asegurando visibilidad y forma sello con la cara.</td><td class="pts">5</td></tr>
+                <tr><td class="num">14.2</td><td>Coloca los goggles sin tocar la escafandra y forma sello, pero pierde visibilidad.</td><td class="pts">3</td></tr>
+                <tr><td class="num">14.3</td><td>Toca la escafandra al colocar los goggles y no forma sello con la cara, pierde visibilidad y no verifica la vigencia.</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">15 SANITIZACIÓN DE MANOS ENGUANTADAS (VESTIDOR 3)</td></tr>
+                <tr><td class="num">15.1</td><td>Sanitiza sus guantes con alcohol estéril después de manipular los goggles.</td><td class="pts">5</td></tr>
+                <tr><td class="num">15.2</td><td>No sanitiza sus guantes después de manipular los goggles, sin embargo rectifica y lo corrige.</td><td class="pts">3</td></tr>
+                <tr><td class="num">15.3</td><td>No lo hace.</td><td class="pts">0</td></tr>
+                
+                <!-- PÁGINA 4 AÑADIDA -->
+                <tr><td colspan="3" class="main-step">16 COLOCACIÓN DE GUANTES FINALES (VESTIDOR 3)</td></tr>
+                <tr><td class="num">16.1</td><td>Verifica que es la talla correcta, al colocarlos evita tocar parte externa de los guantes y no se rompen</td><td class="pts">5</td></tr>
+                <tr><td class="num">16.2</td><td>Verifica que es la talla correcta, pero al colocarlos toca la parte externa o se rompen</td><td class="pts">3</td></tr>
+                <tr><td class="num">16.3</td><td>No verifica la talla, toca parte externa o se rompen</td><td class="pts">0</td></tr>
+
+                <tr><td colspan="3" class="main-step">17 VERIFICACIÓN DE VESTIDO</td></tr>
+                <tr><td class="num">17.1</td><td>Rectifica que su traje está bien colocado, sin escafandra por fuera y no está roto</td><td class="pts">5</td></tr>
+                <tr><td class="num">17.2</td><td>No rectifica que su traje esté bien colocado</td><td class="pts">0</td></tr>
+
+            </tbody>
+        </table>
+        
+        <div class="poe-section" style="margin-top: 15px; border-color: #94a3b8;">
+            <p>De acuerdo con el puntaje obtenido se asignará la calificación correspondiente según la siguiente tabla:</p>
+            <table class="poe-table" style="width: 70%; margin: 10px auto;">
+                <tr><th style="background:#cbd5e1;">Calificación</th><th style="background:#cbd5e1;">Porcentaje</th></tr>
+                <tr><td style="text-align:center;">Aprobado</td><td style="text-align:center;">Mayor o igual a 80%</td></tr>
+                <tr><td style="text-align:center;">No aprobado</td><td style="text-align:center;">Menor a 80%</td></tr>
+            </table>
+            
+            <p style="font-weight:bold; margin-top:15px;">NOTAS:</p>
+            <ul style="margin-left: 20px;">
+                <li>El evaluador deberá contar con técnica de vestido vigente y estar calificado como APTO.</li>
+                <li>El personal deberá aprobar el examen teórico antes de la aplicación de esta evaluación.</li>
+                <li>Al personal se le deberá proporcionar todo el material necesario para su evaluación y debe estar en buen estado, además los insumos estériles deben estar vigentes.</li>
+                <li>Al finalizar la evaluación se retroalimentará sobre las oportunidades de mejora detectadas.</li>
+            </ul>
+            
+            <div style="margin-top: 20px; border-top: 1px solid #94a3b8; padding-top: 10px;">
+                <p><strong>RESULTADO:</strong></p>
+                <p>TOTAL, DE PUNTOS: <u style="font-weight:bold;"> 85 </u> &nbsp;&nbsp; PUNTOS OBTENIDOS: _______ &nbsp;&nbsp; PORCENTAJE: _______</p>
+                <br>
+                <p>NOMBRE Y FIRMA DEL PERSONAL EVALUADO: ___________________________________________</p>
+                <p>NOMBRE Y FIRMA EVALUADOR: <u style="font-family: 'Brush Script MT', cursive; font-size: 16px;"></u></p>
+                <p>NOMBRE Y FIRMA DEL SUPERVISOR DE MICROBIOLOGÍA: ___________________________________</p>
+                <p>NOMBRE Y FIRMA DEL JEFE DE OPERACIONES: _________________________________________</p>
+            </div>
+        </div>
+
+    </div>
+    <div class="poe-footer-bar">
+        <button class="mode-btn play" style="width:100%; border:none; background: #0f172a; padding: 12px; font-size: 14px; border-radius:6px; color: white; cursor: pointer;" onclick="location.reload()">Regresar al Menú Principal</button>
+    </div>
+</div>
+
+<!-- MODO EVALUACIÓN -->
+<div id="exam-wrapper">
+    <div class="exam-header">Evaluación Teórica: Áreas Asépticas</div>
+    <div class="question-container">
+        <div style="font-size: 12px; color: #64748b; font-weight: bold; margin-bottom: 10px;" id="exam-progress">Pregunta 1 / 20</div>
+        <div class="question-text" id="exam-q-text"></div>
+        <div id="exam-options"></div>
+    </div>
+    <div class="exam-footer">
+        <span id="exam-feedback" style="font-weight: bold; font-size: 14px;"></span>
+        <button class="next-btn" id="exam-next-btn" onclick="nextQuestion()">Siguiente ➔</button>
+    </div>
+</div>
+
+<!-- MODO JUEGO (Simulador actualizado a 17 Pasos) -->
 <div id="game-wrapper">
     <div id="status-bar">
         <div class="header-row">
             <span id="room-name">Filtro de Ingreso</span>
-            <span style="font-size: 12px; color: #94a3b8;">GESSM-F02-I156-GRL</span>
+            <span style="font-size: 12px; color: #94a3b8;" onclick="location.reload()" style="cursor:pointer;">Salir ✖</span>
         </div>
         <div id="inventory-bar"></div>
     </div>
@@ -138,12 +371,8 @@
             <div id="action-menu">
                 <div id="action-title">¿Usar objeto?</div>
                 <div class="action-btns">
-                    <button class="btn-act btn-yes" id="btn-act-yes">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    </button>
-                    <button class="btn-act btn-no" id="btn-act-no">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
+                    <button class="btn-act btn-yes" id="btn-act-yes">✔️</button>
+                    <button class="btn-act btn-no" id="btn-act-no">❌</button>
                 </div>
             </div>
         </div>
@@ -152,14 +381,284 @@
             <h2 style="text-align: center; margin-bottom: 10px;">Reporte GESSM-F02-I156-GRL</h2>
             <div id="report-content" style="flex: 1;"></div>
             <h3 id="final-score" style="text-align: center; margin: 15px 0;"></h3>
-            <button onclick="location.reload()" style="padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%;">Reevaluar</button>
+            <button onclick="location.reload()" style="padding: 12px; background: var(--accent); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%;">Volver al Menú</button>
         </div>
     </div>
-
     <div id="dialogue-box">Toca una casilla para caminar.<br>Toca un objeto para interactuar.<br>Toca a tu personaje para revisarte.</div>
 </div>
 
 <script>
+    // ==========================================
+    // CONTROL DE MODOS
+    // ==========================================
+    function startMode(mode) {
+        document.getElementById('start-screen').style.display = 'none';
+        if (mode === 'game') {
+            document.getElementById('game-wrapper').style.display = 'flex';
+            updatePlayerState();
+            renderRoom(0);
+        } else if (mode === 'exam') {
+            document.getElementById('exam-wrapper').style.display = 'flex';
+            loadExamQuestion();
+        } else if (mode === 'poe') {
+            document.getElementById('poe-wrapper').style.display = 'flex';
+        }
+    }
+
+    // ==========================================
+    // MOTOR DEL EXAMEN TEÓRICO (20 PREGUNTAS ACTUALIZADAS)
+    // ==========================================
+    const examQuestions = [
+        {
+            q: "1. ¿Cuál es la restricción exacta respecto al vello facial y el cabello según los prerrequisitos de la evaluación inicial?",
+            options: [
+                "No debe existir ningún tipo de vello facial visible, y el cabello debe estar completamente recogido bajo una red de seguridad industrial.",
+                "No tener barba, mantener las patillas cortas aproximadamente a la mitad de la oreja y no tener ningún cabello expuesto fuera de la cofia.",
+                "El personal masculino debe estar rasurado al ras obligatoriamente, y el personal femenino no debe presentar flequillos ni adornos capilares."
+            ],
+            ans: 1
+        },
+        {
+            q: "2. Si un analista se presenta a la evaluación de técnica de vestido con una herida expuesta en la mano, ¿qué acción debe tomarse?",
+            options: [
+                "Proporcionar un vendaje estéril impermeable, aplicar solución antiséptica avalada y permitir el acceso condicionado utilizando doble guante.",
+                "Se deberá detener inmediatamente la técnica de vestido y notificar al jefe inmediato vía correo electrónico para proceder a reagendar la técnica.",
+                "Permitir el acceso de manera condicional únicamente si la herida es menor a dos centímetros y no presenta ningún riesgo visible de sangrado activo."
+            ],
+            ans: 1
+        },
+        {
+            q: "3. Según las instrucciones generales de suspensión, ¿qué omisión específica durante el paso por el Vestidor 1 suspende automáticamente la técnica?",
+            options: [
+                "No realizar el secado de manos utilizando el dispensador de aire caliente durante el tiempo cronometrado estipulado en la normativa vigente.",
+                "Omitir la aplicación de gel antibacterial directamente en los pliegues de las manos después de haber concluido satisfactoriamente el secado.",
+                "Que el personal omitiera o simplemente decidiera no realizar el procedimiento de lavado de manos de forma deliberada antes de avanzar de sala."
+            ],
+            ans: 2
+        },
+        {
+            q: "4. Durante la evaluación de la técnica general, ¿qué condición justifica exactamente otorgar una calificación intermedia de 3 puntos en una actividad?",
+            options: [
+                "Realizar la actividad conforme a lo indicado en la instrucción correspondiente, demostrando habilidad en la técnica, pero en la que se detectan errores.",
+                "Ejecutar la actividad de manera precisa pero con una lentitud excesiva, excediendo el límite de tiempo establecido en el cronómetro para dicho vestidor.",
+                "Omitir conscientemente un paso secundario de la técnica documentada, siempre y cuando el resultado final no comprometa la esterilidad del ambiente."
+            ],
+            ans: 0
+        },
+        {
+            q: "5. ¿Cuál es el criterio normativo exacto para obtener cero puntos durante el rubro de Secado de Manos ubicado dentro de las tareas del Vestidor 1?",
+            options: [
+                "Secar las manos parcialmente, de modo que aún se observan gotas de agua residual en la superficie de las palmas y el dorso de la extremidad.",
+                "No secar las manos de ninguna manera, omitiendo por completo el uso del secador de aire o las toallas estériles destinadas para este propósito.",
+                "Utilizar más de dos toallas de papel absorbente o extender el uso del secador de aire por un periodo superior al límite de tiempo normativo."
+            ],
+            ans: 1
+        },
+        {
+            q: "6. ¿Qué requisito descriptivo e indispensable debe cumplirse durante la aplicación del gel antibacterial para ser acreedor al puntaje perfecto (5 pts)?",
+            options: [
+                "Utilizar exactamente tres descargas volumétricas del dispensador automático de gel y esperar un lapso de treinta segundos hasta su secado total.",
+                "Aplicar el gel de forma continua y abundante, asegurando que la sustancia cubra tanto las muñecas como la porción inferior del antebrazo del analista.",
+                "Aplicar el producto en gel y distribuyéndolo de manera completamente uniforme sobre toda la superficie de sus manos, incluyendo obligatoriamente los pliegues."
+            ],
+            ans: 2
+        },
+        {
+            q: "7. Si durante el proceso del Vestidor 2 el analista omite verificar la talla de los guantes, toca su parte externa directamente y además el material se rompe:",
+            options: [
+                "Recibe una amonestación verbal de advertencia y se le instruye reiniciar la colocación utilizando cuidadosamente una talla superior para evitar tensiones.",
+                "Se le otorgan cero puntos irrevocables en dicha actividad por la suma de errores: no verificar la talla, tocar imprudentemente la parte externa y romperlo.",
+                "Se decreta la cancelación inmediata de la técnica de vestido completa y el implicado debe notificar del incidente de inmediato al supervisor operativo a cargo."
+            ],
+            ans: 1
+        },
+        {
+            q: "8. Antes de realizar la primera sanitización obligatoria de las manos enguantadas en el Vestidor 3, ¿qué factor crítico se debe inspeccionar y verificar?",
+            options: [
+                "La vigencia actualizada del frasco de alcohol estéril disponible en la estación, para posteriormente sanitizar sus guantes después de manipular la envoltura.",
+                "La fecha de caducidad oficial que viene termo-impresa en el exterior del empaque primario del overol estéril desechable justo antes de proceder a abrirlo.",
+                "La integridad estructural de los guantes iniciales colocados previamente, asegurando bajo luz brillante que el látex no presente ninguna micro-perforación."
+            ],
+            ans: 0
+        },
+        {
+            q: "9. ¿Bajo qué situación documentada el evaluador registraría únicamente 3 puntos de calificación durante la delicada maniobra de colocación de la escafandra?",
+            options: [
+                "Tomar la prenda protectora sujetándola exclusivamente por su parte externa desde un inicio, y posteriormente dejar los cordones de amarre demasiado holgados.",
+                "Tomar la prenda por la parte interna correctamente, pero que esta termine tapando la visión del usuario y deba ser corregida manipulando la parte externa.",
+                "Tomar la prenda de forma excepcionalmente correcta, pero olvidar por descuido sanitizar los guantes utilizando el alcohol estéril inmediatamente tras finalizar."
+            ],
+            ans: 1
+        },
+        {
+            q: "10. ¿Cuál de las siguientes acciones físicas ejecutadas durante la colocación del overol estéril amerita la cancelación o suspensión total de la evaluación práctica?",
+            options: [
+                "Manipular torpemente la estructura de la prenda por la parte externa y consecuentemente arrastrar de manera muy ligera una manga sobre la superficie de la banca.",
+                "Que el personal involucrado se recargue directamente en la pared al momento de colocarse el overol o si por fatiga deciden sentarse en la banca del vestidor.",
+                "Intentar introducir ambos pies de forma simultánea dentro del traje, perdiendo momentáneamente el equilibrio pero logrando estabilizarse sin llegar a tocar el suelo."
+            ],
+            ans: 1
+        },
+        {
+            q: "11. En referencia a la colocación de los zapatones estériles dentro del Vestidor 3, ¿qué conjunto de acciones se penaliza drásticamente con una calificación de 0 puntos?",
+            options: [
+                "Tocar accidentalmente o por falta de destreza la bota inferior del overol estéril durante el proceso de tensión y sujeción de la banda elástica del zapatón.",
+                "Sujetar firmemente el zapatón de manera incorrecta o asimétrica, dejando una holgura visible o pliegues sueltos en la zona anatómica del tobillo inferior.",
+                "Al momento de colocar el zapatón, cometer la equivocación de tocar la parte externa del mismo, o en su defecto, pisar accidentalmente del lado del área gris."
+            ],
+            ans: 2
+        },
+        {
+            q: "12. ¿Qué lineamientos precisos requiere cumplir satisfactoriamente el operario para obtener los 5 puntos máximos al momento de colocarse los goggles estériles?",
+            options: [
+                "Verificar meticulosamente su vigencia oficial, colocarlos en el rostro sin llegar a tocar la escafandra, asegurando plena visibilidad y formando un sello con la cara.",
+                "Sujetar la montura firmemente por su correa elástica trasera y ajustarlos de manera estricta por detrás de la cabeza, procurando en todo momento no soltar la escafandra.",
+                "Extraer cuidadosamente el accesorio de su empaque estéril original, proceder a aplicarles líquido antiempañante homologado y colocarlos centrados en la zona ocular."
+            ],
+            ans: 0
+        },
+        {
+            q: "13. ¿Por qué razón específica y documentada el evaluador tomaría la decisión de otorgar solamente 3 puntos de calificación durante el paso de colocación de los goggles?",
+            options: [
+                "Coloca exitosamente los goggles sin rozar ni tocar la escafandra, pero comete el error de omisión al no verificar la vigencia impresa del material antes de usarlo.",
+                "Coloca adecuadamente los goggles llegando a formar sello, pero durante la maniobra toca la escafandra y adicionalmente el analista confiesa que pierde visibilidad.",
+                "Toca en repetidas ocasiones el visor frontal transparente de los goggles utilizando los guantes húmedos, dejando manchas o marcas muy visibles en el policarbonato."
+            ],
+            ans: 1
+        },
+        {
+            q: "14. Existe una instrucción estricta de suspensión relacionada con la gestión de los residuos en el vestidor. ¿A qué acción puntual se refiere este criterio normativo?",
+            options: [
+                "Que el personal manipulador arroje negligentemente la envoltura del overol cayendo esta por fuera del diámetro del recipiente, impactando directamente sobre el piso del cuarto.",
+                "Que el personal involucrado toque físicamente y de manera directa la estructura del bote de basura al momento exacto de desechar la envoltura plástica protectora de su overol.",
+                "Que el personal evaluado llegue a acumular indebidamente más de dos envolturas estériles vacías sobre el área de la mesa de trabajo sin proceder a desecharlas de manera oportuna."
+            ],
+            ans: 1
+        },
+        {
+            q: "15. En el paso 16, referente a la colocación de guantes finales, ¿qué ocurre si el evaluado verifica la talla correcta pero al colocarlos comete el error de tocar la parte externa?",
+            options: [
+                "El analista reprobará este paso automáticamente obteniendo 0 puntos, puesto que tocar la parte externa de los guantes finales compromete la esterilidad crítica del uniforme.",
+                "El evaluador anotará 3 puntos en este apartado, ya que el analista verificó la talla correcta pero no demostró la habilidad técnica adecuada al tocar la parte externa.",
+                "El proceso deberá ser suspendido de inmediato y el operador tendrá que sanitizarse vigorosamente con alcohol estéril para proceder a usar un par de guantes completamente nuevo."
+            ],
+            ans: 1
+        },
+        {
+            q: "16. Durante el paso 16 (Colocación de guantes finales), ¿cuáles son los tres requisitos simultáneos para obtener la máxima puntuación de 5 puntos en la auditoría?",
+            options: [
+                "Sanitizar los guantes iniciales previamente, verificar que los guantes finales sean de la talla correcta y estirar la parte superior para cubrir por completo las mangas del overol.",
+                "Verificar la fecha de caducidad del empaque plástico, asegurarse de no tocar en ningún momento la parte externa y revisar que ambos guantes no presenten defectos de fábrica.",
+                "Verificar que es la talla correcta, y al momento de colocárselos evitar tocar la parte externa de los guantes, además de asegurarse de que no se rompan durante la técnica."
+            ],
+            ans: 2
+        },
+        {
+            q: "17. En la última fase del procedimiento (Paso 17. Verificación de Vestido), ¿qué aspectos específicos debe rectificar el analista para asegurar los 5 puntos finales?",
+            options: [
+                "Rectifica que su traje está bien colocado, asegurándose visualmente de no dejar la escafandra por fuera del cuello del overol y confirmando que la tela no está rota.",
+                "Se posiciona frente al espejo del vestidor, comprueba la perfecta hermeticidad del sello de los goggles y ajusta las cintas de la escafandra para una óptima visibilidad.",
+                "Solicita de manera verbal al analista supervisor que apruebe visualmente su técnica de vestido, levantando ambos brazos para confirmar la movilidad de las mangas del traje."
+            ],
+            ans: 0
+        },
+        {
+            q: "18. ¿Qué calificación o porcentaje mínimo debe obtener el personal evaluado en la suma total de las rúbricas para que el formato GESSM-F02-I156-GRL lo considere Aprobado?",
+            options: [
+                "Debe acumular una puntuación mayor o igual al 90% de los reactivos disponibles, lo que equivale a no cometer ningún error de 0 puntos durante los diecisiete pasos.",
+                "Debe alcanzar un porcentaje mayor o igual a 80% del puntaje total disponible de 85 puntos, demostrando habilidad constante en toda la técnica operativa de cuarto limpio.",
+                "Debe sumar obligatoriamente los 85 puntos posibles en su totalidad, ya que cualquier error menor de 3 puntos representa un riesgo inaceptable para las áreas asépticas."
+            ],
+            ans: 1
+        },
+        {
+            q: "19. De acuerdo con las notas oficiales descritas al final de la evaluación práctica, ¿qué requisito previo debe cumplir el personal antes de aplicar esta prueba de vestido?",
+            options: [
+                "El personal deberá demostrar haber acumulado al menos tres meses de experiencia operativa en áreas limpias secundarias antes de someterse a la prueba en zona aséptica.",
+                "El personal deberá entregar una carta responsiva médica de buena salud y asistir con ropa interior quirúrgica aprobada por el área de microbiología de la planta farmacéutica.",
+                "El personal deberá aprobar satisfactoriamente el examen teórico correspondiente antes de tener permitido proceder a la aplicación de esta evaluación práctica supervisada."
+            ],
+            ans: 2
+        },
+        {
+            q: "20. Considerando la estructura completa del documento de auditoría, ¿cuántos puntos totales es posible sumar si el colaborador realiza los 17 pasos de forma perfecta?",
+            options: [
+                "Un total de 85 puntos obtenidos mediante la suma de todas las rúbricas de colocación y sanitización.",
+                "Un total de 100 puntos, contemplando los 15 puntos adicionales otorgados por cumplir prerrequisitos.",
+                "Un total de 75 puntos, abarcando desde el ingreso al Vestidor 1 hasta la sanitización de los goggles."
+            ],
+            ans: 0
+        }
+    ];
+
+    let currentQ = 0;
+    let examScore = 0;
+
+    function loadExamQuestion() {
+        if (currentQ >= examQuestions.length) { showExamResults(); return; }
+        
+        const qData = examQuestions[currentQ];
+        document.getElementById('exam-progress').innerText = `Pregunta ${currentQ + 1} de ${examQuestions.length}`;
+        document.getElementById('exam-q-text').innerText = qData.q;
+        
+        const optionsBox = document.getElementById('exam-options');
+        optionsBox.innerHTML = '';
+        
+        qData.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => selectExamAnswer(idx, qData.ans, btn);
+            optionsBox.appendChild(btn);
+        });
+
+        document.getElementById('exam-next-btn').style.display = 'none';
+        document.getElementById('exam-feedback').innerText = '';
+    }
+
+    function selectExamAnswer(selectedIdx, correctIdx, btnElement) {
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => b.disabled = true);
+
+        if (selectedIdx === correctIdx) {
+            btnElement.classList.add('correct');
+            document.getElementById('exam-feedback').innerText = "✅ Correcto (+5 pts)";
+            document.getElementById('exam-feedback').style.color = "#16a34a";
+            examScore += 5;
+        } else {
+            btnElement.classList.add('wrong');
+            btns[correctIdx].classList.add('correct');
+            document.getElementById('exam-feedback').innerText = "❌ Incorrecto (0 pts)";
+            document.getElementById('exam-feedback').style.color = "#dc2626";
+        }
+        document.getElementById('exam-next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQ++;
+        loadExamQuestion();
+    }
+
+    function showExamResults() {
+        const maxScore = examQuestions.length * 5; 
+        const passed = examScore >= maxScore * 0.8; // 80% para aprobar como en la vida real
+        const color = passed ? '#16a34a' : '#dc2626';
+        
+        document.querySelector('.question-container').innerHTML = `
+            <h2 style="text-align:center; margin-top:40px;">Auditoría Teórica Finalizada</h2>
+            <div style="text-align:center; font-size:48px; margin:20px 0; font-weight:bold; color:${color};">${examScore} / ${maxScore}</div>
+            <p style="text-align:center; color:#64748b; font-weight:bold; font-size: 16px; padding: 0 10px;">
+                ${passed ? '¡Aprobado! (>= 80%) Dominas el procedimiento operativo estándar a la perfección.' : 'No Aprobado (< 80%). Es obligatorio revisar la normativa GESSM-F02-I156-GRL nuevamente.'}
+            </p>
+        `;
+        document.querySelector('.exam-footer').innerHTML = `
+            <button class="mode-btn play" style="width:100%; border:none; background: #0284c7; color:white; padding:15px; border-radius:8px; font-weight:bold; font-size: 16px; cursor:pointer;" onclick="location.reload()">Volver al Menú Principal</button>
+        `;
+    }
+
+    // ==========================================
+    // MOTOR DEL SIMULADOR (Actualizado a 17 pasos)
+    // ==========================================
     const TILE = 45;
     const playerEl = document.getElementById('player');
     const entitiesEl = document.getElementById('entities-container');
@@ -169,7 +668,6 @@
     const roomNameEl = document.getElementById('room-name');
     const actionMenu = document.getElementById('action-menu');
 
-    // === LIBRERÍA SVG ===
     const SVGs = {
         door: `<svg viewBox="0 0 100 100"><rect x="20" y="10" width="60" height="90" fill="#8b5cf6" rx="4"/><rect x="65" y="50" width="8" height="15" fill="#fde047" rx="2"/></svg>`,
         mirror: `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="30" ry="45" fill="#38bdf8" stroke="#cbd5e1" stroke-width="6"/><path d="M 40 20 L 70 80" stroke="white" stroke-width="4" opacity="0.5"/></svg>`,
@@ -188,7 +686,8 @@
                 'escafandra': `<path d="M 20 80 L 20 20 Q 50 0 80 20 L 80 80 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/><rect x="35" y="30" width="30" height="15" fill="#1e293b"/>`,
                 'overol': `<rect x="25" y="10" width="50" height="80" fill="#f8fafc" rx="10" stroke="#cbd5e1" stroke-width="2"/><line x1="50" y1="10" x2="50" y2="90" stroke="#cbd5e1" stroke-width="2"/>`,
                 'goggles': `<rect x="20" y="40" width="60" height="20" fill="rgba(56,189,248,0.5)" rx="8" stroke="#0284c7" stroke-width="4"/>`,
-                'gorra': `<path d="M 20 60 Q 50 20 80 60 Z" fill="#ef4444"/><rect x="70" y="50" width="20" height="10" fill="#ef4444" rx="3"/>`
+                'gorra': `<path d="M 20 60 Q 50 20 80 60 Z" fill="#ef4444"/><rect x="70" y="50" width="20" height="10" fill="#ef4444" rx="3"/>`,
+                'guantes_finales': `<path d="M 20 30 Q 35 10 45 30 L 45 80 L 20 80 Z" fill="#38bdf8"/><path d="M 55 30 Q 65 10 80 30 L 80 80 L 55 80 Z" fill="#38bdf8"/>`
             };
             return `<svg viewBox="0 0 100 100">${defs[type]}</svg>`;
         }
@@ -199,7 +698,7 @@
         let skin = '#fcd34d';
         let bodyColor = pState.looks.overol ? '#f8fafc' : '#0ea5e9';
         let stroke = pState.looks.overol ? 'stroke="#cbd5e1" stroke-width="2"' : '';
-        let armColor = pState.looks.guantes ? '#f1f5f9' : bodyColor;
+        let armColor = pState.looks.guantes_finales ? '#38bdf8' : (pState.looks.guantes ? '#f1f5f9' : bodyColor);
 
         s += `<rect x="35" y="75" width="12" height="20" fill="${bodyColor}" ${stroke}/>`;
         s += `<rect x="53" y="75" width="12" height="20" fill="${bodyColor}" ${stroke}/>`;
@@ -219,9 +718,7 @@
             s += `<rect x="35" y="25" width="30" height="12" fill="${visorColor}" rx="4"/>`;
         } else {
             s += `<circle cx="50" cy="25" r="18" fill="${skin}"/>`;
-            if (pState.room === 0 && pState.looks.aretes) {
-                s += `<circle cx="32" cy="25" r="3" fill="#fbbf24"/><circle cx="68" cy="25" r="3" fill="#fbbf24"/>`;
-            }
+            if (pState.room === 0 && pState.looks.aretes) { s += `<circle cx="32" cy="25" r="3" fill="#fbbf24"/><circle cx="68" cy="25" r="3" fill="#fbbf24"/>`; }
             if (pState.looks.cofia) s += `<path d="M 30 25 Q 50 5 70 25 Q 50 35 30 25 Z" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>`;
             if (pState.looks.cubrebocas) s += `<rect x="35" y="28" width="30" height="12" fill="#38bdf8" rx="4"/>`;
         }
@@ -230,75 +727,25 @@
         return s;
     }
 
-    // === ESTADO Y MAPAS ===
     let isMoving = false;
     let actionLog = [];
-    let pState = {
-        x: 4, y: 8, room: 0,
-        looks: { aretes: true, reloj: true, cofia: false, cubrebocas: false, zapatones1: false, guantes: false, escafandra: false, overol: false, zapatones2: false, goggles: false },
-        escaMalPuesta: false
-    };
+    let pState = { x: 4, y: 8, room: 0, looks: { aretes: true, reloj: true, cofia: false, cubrebocas: false, zapatones1: false, guantes: false, escafandra: false, overol: false, zapatones2: false, goggles: false, guantes_finales: false }, escaMalPuesta: false };
 
     const rooms = [
-        {
-            name: "Pasillo de Ingreso", furniture: [],
-            entities: [
-                { id: 'espejo', name: 'Espejo', x: 2, y: 3, svg: SVGs.mirror, action: () => showMsg("Reflejo: Tienes joyas puestas. Toca a tu personaje para retirarlas.") },
-                { id: 'door1', name: 'Puerta V1', x: 4, y: 1, svg: SVGs.door, action: () => tryEnterRoom(1) }
-            ]
-        },
-        {
-            name: "Vestidor 1",
-            furniture: [ { x: 1, y: 3, w: 1, h: 5 }, { x: 6, y: 2, w: 3, h: 2 } ],
-            entities: [
-                { id: 'door2', name: 'Puerta V2', x: 4, y: 1, svg: SVGs.door, action: () => tryEnterRoom(2) },
-                { id: 'wash', name: 'Lavamanos', x: 1, y: 3, svg: SVGs.sink, action: () => doAction('wash', "Lavado de manos clínico completado.") },
-                { id: 'dry', name: 'Secador', x: 1, y: 5, svg: SVGs.dryer, action: () => doAction('dry', "Secado total sin dejar gotas.") },
-                { id: 'gel', name: 'Gel San.', x: 1, y: 7, svg: SVGs.bottle('#38bdf8'), action: () => doAction('gel', "Gel aplicado hasta los pliegues.") },
-                { id: 'cofia', name: 'Cofia', x: 6, y: 2, svg: SVGs.clothing('cofia'), isItem: true },
-                { id: 'cubrebocas', name: 'Cubrebocas', x: 7, y: 2, svg: SVGs.clothing('cubrebocas'), isItem: true },
-                { id: 'zapatones1', name: 'Zapatones (Gris)', x: 8, y: 2, svg: SVGs.clothing('shoes'), isItem: true },
-                { id: 'gorra', name: 'Gorra sucia', x: 7, y: 3, svg: SVGs.clothing('gorra'), action: () => doAction('error_gorra', "¡ERROR! Te colocaste ropa de calle en área gris.") }
-            ]
-        },
-        {
-            name: "Vestidor 2 (Guantes)",
-            furniture: [ { x: 3, y: 4, w: 4, h: 2 } ],
-            entities: [
-                { id: 'door3', name: 'Puerta V3', x: 4, y: 1, svg: SVGs.door, action: () => tryEnterRoom(3) },
-                { id: 'alcohol', name: 'Alcohol Estéril', x: 3, y: 4, svg: SVGs.bottle('#f8fafc'), action: () => doAction('alcohol', "Sanitización de manos completa.") },
-                { id: 'guantes', name: 'Guantes Est.', x: 6, y: 4, svg: SVGs.clothing('guantes'), isItem: true }
-            ]
-        },
-        {
-            name: "Vestidor 3 (Aséptico)",
-            furniture: [ { x: 1, y: 4, w: 1, h: 2 }, { x: 4, y: 4, w: 5, h: 2 } ],
-            entities: [
-                { id: 'door_fin', name: 'Área Blanca', x: 4, y: 1, svg: `<svg viewBox="0 0 100 100"><rect x="20" y="10" width="60" height="90" fill="#10b981" rx="4"/><circle cx="50" cy="50" r="10" fill="#f8fafc"/></svg>`, action: () => finishGame() },
-                { id: 'alcohol2', name: 'Alcohol Estéril', x: 1, y: 4, svg: SVGs.bottle('#f8fafc'), action: () => doAction('alcohol', "Guantes sanitizados.") },
-                { id: 'basura', name: 'Bote Basura', x: 1, y: 8, svg: SVGs.trash, action: () => doAction('error_basura', "¡ERROR CRÍTICO! Tocaste el bote de basura.") },
-                { id: 'banca', name: 'Banca', x: 8, y: 8, svg: SVGs.bench, action: () => doAction('error_banca', "¡ERROR CRÍTICO! Te apoyaste en la banca.") },
-                { id: 'escafandra', name: 'Escafandra', x: 4, y: 4, svg: SVGs.clothing('escafandra'), isItem: true, special: 'esca' },
-                { id: 'overol', name: 'Overol Estéril', x: 5, y: 4, svg: SVGs.clothing('overol'), isItem: true },
-                { id: 'zapatones2', name: 'Zapatones Est.', x: 6, y: 4, svg: SVGs.clothing('shoes2'), isItem: true },
-                { id: 'goggles', name: 'Goggles', x: 7, y: 4, svg: SVGs.clothing('goggles'), isItem: true }
-            ]
-        }
+        { name: "Pasillo de Ingreso", furniture: [], entities: [ { id: 'espejo', name: 'Espejo', x: 2, y: 3, svg: SVGs.mirror, action: () => showMsg("Reflejo: Tienes joyas puestas. Toca a tu personaje para retirarlas.") }, { id: 'door1', name: 'Puerta V1', x: 4, y: 1, svg: SVGs.door, action: () => tryEnterRoom(1) } ] },
+        { name: "Vestidor 1", furniture: [ { x: 1, y: 3, w: 1, h: 5 }, { x: 6, y: 2, w: 3, h: 2 } ], entities: [ { id: 'door2', name: 'Puerta V2', x: 4, y: 1, svg: SVGs.door, action: () => tryEnterRoom(2) }, { id: 'wash', name: 'Lavamanos', x: 1, y: 3, svg: SVGs.sink, action: () => doAction('wash', "Lavado de manos clínico completado.") }, { id: 'dry', name: 'Secador', x: 1, y: 5, svg: SVGs.dryer, action: () => doAction('dry', "Secado total sin dejar gotas.") }, { id: 'gel', name: 'Gel San.', x: 1, y: 7, svg: SVGs.bottle('#38bdf8'), action: () => doAction('gel', "Gel aplicado hasta los pliegues.") }, { id: 'cofia', name: 'Cofia', x: 6, y: 2, svg: SVGs.clothing('cofia'), isItem: true }, { id: 'cubrebocas', name: 'Cubrebocas', x: 7, y: 2, svg: SVGs.clothing('cubrebocas'), isItem: true }, { id: 'zapatones1', name: 'Zapatones (Gris)', x: 8, y: 2, svg: SVGs.clothing('shoes'), isItem: true }, { id: 'gorra', name: 'Gorra sucia', x: 7, y: 3, svg: SVGs.clothing('gorra'), action: () => doAction('error_gorra', "¡ERROR! Te colocaste ropa de calle en área gris.") } ] },
+        { name: "Vestidor 2 (Guantes)", furniture: [ { x: 3, y: 4, w: 4, h: 2 } ], entities: [ { id: 'door3', name: 'Puerta V3', x: 4, y: 1, svg: SVGs.door, action: () => tryEnterRoom(3) }, { id: 'alcohol', name: 'Alcohol Estéril', x: 3, y: 4, svg: SVGs.bottle('#f8fafc'), action: () => doAction('alcohol', "Sanitización de manos completa.") }, { id: 'guantes', name: 'Guantes Est.', x: 6, y: 4, svg: SVGs.clothing('guantes'), isItem: true } ] },
+        { name: "Vestidor 3 (Aséptico)", furniture: [ { x: 1, y: 4, w: 1, h: 2 }, { x: 4, y: 4, w: 5, h: 2 } ], entities: [ { id: 'door_fin', name: 'Área Blanca', x: 4, y: 1, svg: `<svg viewBox="0 0 100 100"><rect x="20" y="10" width="60" height="90" fill="#10b981" rx="4"/><circle cx="50" cy="50" r="10" fill="#f8fafc"/></svg>`, action: () => finishGame() }, { id: 'alcohol2', name: 'Alcohol Estéril', x: 1, y: 4, svg: SVGs.bottle('#f8fafc'), action: () => doAction('alcohol', "Guantes sanitizados.") }, { id: 'espejo_verificacion', name: 'Espejo de Verificación', x: 2, y: 1, svg: SVGs.mirror, action: () => doAction('verificar_vestido', "Rectificando que el traje esté bien colocado y sin roturas.") }, { id: 'basura', name: 'Bote Basura', x: 1, y: 8, svg: SVGs.trash, action: () => doAction('error_basura', "¡ERROR CRÍTICO! Tocaste el bote de basura.") }, { id: 'banca', name: 'Banca', x: 8, y: 8, svg: SVGs.bench, action: () => doAction('error_banca', "¡ERROR CRÍTICO! Te apoyaste en la banca.") }, { id: 'escafandra', name: 'Escafandra', x: 4, y: 4, svg: SVGs.clothing('escafandra'), isItem: true, special: 'esca' }, { id: 'overol', name: 'Overol Estéril', x: 5, y: 4, svg: SVGs.clothing('overol'), isItem: true }, { id: 'zapatones2', name: 'Zapatones Est.', x: 6, y: 4, svg: SVGs.clothing('shoes2'), isItem: true }, { id: 'goggles', name: 'Goggles', x: 7, y: 4, svg: SVGs.clothing('goggles'), isItem: true }, { id: 'guantes_finales', name: 'Guantes Finales', x: 8, y: 4, svg: SVGs.clothing('guantes_finales'), isItem: true } ] }
     ];
 
-    // === MOTOR LÓGICO Y UX INTERACTIVA ===
     function renderRoom(idx) {
-        pState.room = idx;
-        const room = rooms[idx];
-        roomNameEl.innerText = room.name;
-        pState.x = 4; pState.y = 8;
-        updatePlayerPos();
-        actionMenu.style.display = 'none';
+        pState.room = idx; const room = rooms[idx];
+        roomNameEl.innerText = room.name; pState.x = 4; pState.y = 8;
+        updatePlayerPos(); actionMenu.style.display = 'none';
 
         furnitureEl.innerHTML = '';
         room.furniture.forEach(f => {
-            const div = document.createElement('div');
-            div.className = 'furniture';
+            const div = document.createElement('div'); div.className = 'furniture';
             div.style.left = (f.x * TILE) + 'px'; div.style.top = (f.y * TILE) + 'px';
             div.style.width = (f.w * TILE) + 'px'; div.style.height = (f.h * TILE) + 'px';
             furnitureEl.appendChild(div);
@@ -307,25 +754,14 @@
         entitiesEl.innerHTML = '';
         room.entities.forEach(ent => {
             if (ent.isItem && pState.looks[ent.id]) return;
-            const el = document.createElement('div');
-            el.className = 'entity';
-            el.setAttribute('data-name', ent.name);
-            el.innerHTML = ent.svg;
-            el.style.left = (ent.x * TILE) + 'px'; el.style.top = (ent.y * TILE) + 'px';
+            const el = document.createElement('div'); el.className = 'entity'; el.setAttribute('data-name', ent.name);
+            el.innerHTML = ent.svg; el.style.left = (ent.x * TILE) + 'px'; el.style.top = (ent.y * TILE) + 'px';
             
             el.onclick = (e) => {
                 e.stopPropagation();
-                let dx = Math.abs(pState.x - ent.x);
-                let dy = Math.abs(pState.y - ent.y);
-                
-                // MEJORA: Si estás cerca, el menú se abre al instante.
-                if (dx <= 1 && dy <= 1) {
-                    openActionMenu(ent, el);
-                } else {
-                    walkTo(ent.x, ent.y, () => {
-                        openActionMenu(ent, el);
-                    });
-                }
+                let dx = Math.abs(pState.x - ent.x); let dy = Math.abs(pState.y - ent.y);
+                if (dx <= 1 && dy <= 1) { openActionMenu(ent, el); } 
+                else { walkTo(ent.x, ent.y, () => { openActionMenu(ent, el); }); }
             };
             entitiesEl.appendChild(el);
         });
@@ -334,8 +770,7 @@
             actionMenu.style.display = 'none';
             if (e.target.id === 'game-screen' || e.target.classList.contains('furniture')) {
                 let rect = document.getElementById('game-screen').getBoundingClientRect();
-                let tx = Math.floor((e.clientX - rect.left) / TILE);
-                let ty = Math.floor((e.clientY - rect.top) / TILE);
+                let tx = Math.floor((e.clientX - rect.left) / TILE); let ty = Math.floor((e.clientY - rect.top) / TILE);
                 if (tx >= 0 && tx < 10 && ty >= 0 && ty < 10) walkTo(tx, ty);
             }
         };
@@ -343,68 +778,27 @@
 
     function openActionMenu(ent, elementNode) {
         document.getElementById('action-title').innerText = ent.isItem ? `¿Tomar ${ent.name}?` : `¿Usar ${ent.name}?`;
-        
-        actionMenu.style.left = ((ent.x * TILE) + (TILE / 2)) + 'px';
-        actionMenu.style.top = (ent.y * TILE) + 'px';
-        actionMenu.style.display = 'flex';
-
-        // Reasignar eventos limpiamente
-        document.getElementById('btn-act-yes').onclick = (e) => {
-            e.stopPropagation();
-            actionMenu.style.display = 'none';
-            if (ent.isItem) pickUp(ent, elementNode);
-            else ent.action();
-        };
-        
-        document.getElementById('btn-act-no').onclick = (e) => {
-            e.stopPropagation();
-            actionMenu.style.display = 'none';
-        };
+        actionMenu.style.left = ((ent.x * TILE) + (TILE / 2)) + 'px'; actionMenu.style.top = (ent.y * TILE) + 'px'; actionMenu.style.display = 'flex';
+        document.getElementById('btn-act-yes').onclick = (e) => { e.stopPropagation(); actionMenu.style.display = 'none'; if (ent.isItem) pickUp(ent, elementNode); else ent.action(); };
+        document.getElementById('btn-act-no').onclick = (e) => { e.stopPropagation(); actionMenu.style.display = 'none'; };
     }
 
     function walkTo(tx, ty, callback) {
         if (isMoving) return;
-        isMoving = true;
-        actionMenu.style.display = 'none';
-        pState.x = tx; pState.y = ty;
-        updatePlayerPos();
-        playerEl.classList.add('walking');
-
-        setTimeout(() => {
-            isMoving = false;
-            playerEl.classList.remove('walking');
-            if (callback) callback();
-        }, 300);
+        isMoving = true; actionMenu.style.display = 'none'; pState.x = tx; pState.y = ty;
+        updatePlayerPos(); playerEl.classList.add('walking');
+        setTimeout(() => { isMoving = false; playerEl.classList.remove('walking'); if (callback) callback(); }, 300);
     }
 
-    function updatePlayerPos() {
-        playerEl.style.left = (pState.x * TILE) + 'px';
-        playerEl.style.top = (pState.y * TILE) + 'px';
-    }
-
+    function updatePlayerPos() { playerEl.style.left = (pState.x * TILE) + 'px'; playerEl.style.top = (pState.y * TILE) + 'px'; }
     function showMsg(text) { dialogueEl.innerText = text; }
-
-    function doAction(id, msg) {
-        actionLog.push(id);
-        showMsg(msg);
-        playerEl.classList.remove('action-fx');
-        void playerEl.offsetWidth; 
-        playerEl.classList.add('action-fx');
-    }
+    function doAction(id, msg) { actionLog.push(id); showMsg(msg); playerEl.classList.remove('action-fx'); void playerEl.offsetWidth; playerEl.classList.add('action-fx'); }
 
     function pickUp(ent, elementNode) {
-        elementNode.remove();
-        pState.looks[ent.id] = true;
+        elementNode.remove(); pState.looks[ent.id] = true;
         let msg = `Equipaste: ${ent.name.toUpperCase()}`;
-        
-        if (ent.special === 'esca' && Math.random() > 0.5) {
-            pState.escaMalPuesta = true;
-            playerEl.classList.add('error-blink');
-            msg = "¡OJO! La escafandra te tapa los ojos. Tócate para acomodarla.";
-        }
-        
-        doAction(ent.id, msg);
-        updatePlayerState();
+        if (ent.special === 'esca' && Math.random() > 0.5) { pState.escaMalPuesta = true; playerEl.classList.add('error-blink'); msg = "¡OJO! La escafandra te tapa los ojos. Tócate para acomodarla."; }
+        doAction(ent.id, msg); updatePlayerState();
     }
 
     function inspectPlayer() {
@@ -412,112 +806,66 @@
         if (pState.room === 0) {
             if (pState.looks.aretes) { pState.looks.aretes = false; doAction('remove_aretes', "Aretes retirados."); }
             else if (pState.looks.reloj) { pState.looks.reloj = false; doAction('remove_reloj', "Reloj retirado."); }
-            else showMsg("Estás listo para entrar.");
-            updatePlayerState();
+            else showMsg("Estás listo para entrar."); updatePlayerState();
         } else if (pState.room === 3 && pState.escaMalPuesta) {
-            pState.escaMalPuesta = false;
-            playerEl.classList.remove('error-blink');
-            doAction('fix_escafandra', "Escafandra corregida. Visión despejada.");
-            updatePlayerState();
-        } else {
-            showMsg("Chequeo personal: Todo en orden.");
-        }
+            pState.escaMalPuesta = false; playerEl.classList.remove('error-blink'); doAction('fix_escafandra', "Escafandra corregida. Visión despejada."); updatePlayerState();
+        } else { showMsg("Chequeo personal: Todo en orden."); }
     }
 
     function updatePlayerState() {
-        playerEl.innerHTML = generatePlayerSVG();
-        invEl.innerHTML = '';
-        const order = ['cofia', 'cubrebocas', 'shoes', 'guantes', 'escafandra', 'overol', 'shoes2', 'goggles'];
-        const keys = ['cofia', 'cubrebocas', 'zapatones1', 'guantes', 'escafandra', 'overol', 'zapatones2', 'goggles'];
-        
-        keys.forEach((key, index) => {
-            if(pState.looks[key]) {
-                let div = document.createElement('div');
-                div.className = 'inv-slot';
-                div.innerHTML = SVGs.clothing(order[index]);
-                invEl.appendChild(div);
-            }
-        });
+        playerEl.innerHTML = generatePlayerSVG(); invEl.innerHTML = '';
+        const order = ['cofia', 'cubrebocas', 'shoes', 'guantes', 'escafandra', 'overol', 'shoes2', 'goggles', 'guantes_finales'];
+        const keys = ['cofia', 'cubrebocas', 'zapatones1', 'guantes', 'escafandra', 'overol', 'zapatones2', 'goggles', 'guantes_finales'];
+        keys.forEach((key, index) => { if(pState.looks[key]) { let div = document.createElement('div'); div.className = 'inv-slot'; div.innerHTML = SVGs.clothing(order[index]); invEl.appendChild(div); } });
     }
 
     function tryEnterRoom(target) {
-        if (pState.room === 0 && (pState.looks.aretes || pState.looks.reloj)) {
-            showMsg("⚠️ ACCESO DENEGADO: Tócate para quitarte los accesorios antes de cruzar.");
-            playerEl.classList.add('error-blink');
-            setTimeout(() => playerEl.classList.remove('error-blink'), 800);
-            return;
-        }
+        // Validación de prerrequisitos
+        if (pState.room === 0 && (pState.looks.aretes || pState.looks.reloj)) { showMsg("⚠️ ACCESO DENEGADO: Tócate para quitarte los accesorios antes de cruzar."); playerEl.classList.add('error-blink'); setTimeout(() => playerEl.classList.remove('error-blink'), 800); return; }
         renderRoom(target);
     }
 
-    // === EVALUADOR DINÁMICO MEJORADO (Corrección Bug) ===
     function finishGame() {
         document.getElementById('report-screen').style.display = 'flex';
         const content = document.getElementById('report-content');
-        
         let score = 0; let expIdx = 0; let html = "";
         
+        // Flexibilidad en el orden de los prerrequisitos y el filtro inicial
         const flexSteps = ['remove_aretes', 'remove_reloj', 'cofia', 'cubrebocas', 'zapatones1'];
-        // Orden oficial estricto a partir del lavado
-        const expectedSequence = ['wash', 'dry', 'gel', 'guantes', 'alcohol', 'escafandra', 'alcohol', 'overol', 'alcohol', 'zapatones2', 'alcohol', 'goggles', 'alcohol'];
-
+        // Secuencia estricta de 15 pasos restantes (del lavado hasta la verificación)
+        const expectedSequence = ['wash', 'dry', 'gel', 'guantes', 'alcohol', 'escafandra', 'alcohol', 'overol', 'alcohol', 'zapatones2', 'alcohol', 'goggles', 'alcohol', 'guantes_finales', 'verificar_vestido'];
         let doneFlex = [];
 
         actionLog.forEach(action => {
-            if (action.includes('error')) {
-                html += `<div class="report-row score-bad"><span>❌ Fallo Crítico (${formatName(action)})</span><span>0 pts</span></div>`;
-            } else if (action === 'fix_escafandra') {
-                html += `<div class="report-row" style="color:#0284c7;"><span>✅ Acomodó escafandra</span><span>+5 pts extra</span></div>`;
-                score += 5;
-            } else if (flexSteps.includes(action)) {
-                if (!doneFlex.includes(action)) {
-                    html += `<div class="report-row score-good"><span>✔️ ${formatName(action)}</span><span>5 pts</span></div>`;
-                    score += 5;
-                    doneFlex.push(action);
-                }
-            } else {
+            if (action.includes('error')) { html += `<div class="report-row score-bad"><span>❌ Fallo Crítico (${formatName(action)})</span><span>0 pts</span></div>`; }
+            else if (action === 'fix_escafandra') { html += `<div class="report-row" style="color:#0284c7;"><span>✅ Acomodó escafandra</span><span>+5 pts extra</span></div>`; score += 5; }
+            else if (flexSteps.includes(action)) { if (!doneFlex.includes(action)) { html += `<div class="report-row score-good"><span>✔️ ${formatName(action)}</span><span>5 pts</span></div>`; score += 5; doneFlex.push(action); } }
+            else {
                 let expected = expectedSequence[expIdx];
-                
-                if (action === expected) {
-                    html += `<div class="report-row score-good"><span>✔️ ${formatName(action)}</span><span>5 pts</span></div>`;
-                    score += 5;
-                    expIdx++;
-                } else if (action === 'alcohol' && expected !== 'alcohol') {
-                    // MEJORA: Ya no penaliza las sanitizaciones de más ni las rompe.
-                    html += `<div class="report-row" style="color:#0284c7;"><span>✔️ Sanitización preventiva extra</span><span>--</span></div>`;
-                } else {
-                    html += `<div class="report-row score-bad"><span>⚠️ ${formatName(action)} (Fuera de orden)</span><span>0 pts</span></div>`;
-                    // Resincronización del index para no arruinar el resto de la auditoría
-                    let futureIdx = expectedSequence.indexOf(action, expIdx);
-                    if (futureIdx !== -1) expIdx = futureIdx + 1;
-                }
+                if (action === expected) { html += `<div class="report-row score-good"><span>✔️ ${formatName(action)}</span><span>5 pts</span></div>`; score += 5; expIdx++; }
+                else if (action === 'alcohol' && expected !== 'alcohol') { html += `<div class="report-row" style="color:#0284c7;"><span>✔️ Sanitización preventiva extra</span><span>--</span></div>`; }
+                else { html += `<div class="report-row score-bad"><span>⚠️ ${formatName(action)} (Fuera de orden)</span><span>0 pts</span></div>`; let futureIdx = expectedSequence.indexOf(action, expIdx); if (futureIdx !== -1) expIdx = futureIdx + 1; }
             }
         });
 
-        // Revisar qué faltó
-        while(expIdx < expectedSequence.length) {
-            html += `<div class="report-row score-bad"><span>❌ Omitió: ${formatName(expectedSequence[expIdx])}</span><span>0 pts</span></div>`;
-            expIdx++;
-        }
+        // Penalizar lo que faltó
+        while(expIdx < expectedSequence.length) { html += `<div class="report-row score-bad"><span>❌ Omitió: ${formatName(expectedSequence[expIdx])}</span><span>0 pts</span></div>`; expIdx++; }
+        if (pState.escaMalPuesta) { html += `<div class="report-row score-bad"><span>❌ Finalizó con visión tapada</span><span>-5 pts</span></div>`; score -= 5; }
 
-        if (pState.escaMalPuesta) {
-            html += `<div class="report-row score-bad"><span>❌ Finalizó con visión tapada</span><span>-5 pts</span></div>`;
-            score -= 5;
-        }
-
-        let maxScore = (flexSteps.length + expectedSequence.length) * 5;
+        // El score máximo en el POE es 85 pts (17 pasos * 5 pts). 
+        // Mi simulador da 10 pts extra por quitarse los aretes y reloj (prerrequisitos).
+        // Ajustamos la etiqueta visual para que concuerde con el máximo posible de la suma interna (85 pts oficiales + 10 pre-req).
+        let maxScore = (3 + expectedSequence.length) * 5; // 3 prendas iniciales + 15 pasos = 90 pts (Excluyendo aretes visualmente para no confundir con los 85 pts oficiales).
+        if(score > 85) score = 85; // Capeado a la perfección del documento.
+        
         content.innerHTML = html;
-        document.getElementById('final-score').innerText = `Calificación Final: ${score} / ${maxScore}`;
-        document.getElementById('final-score').style.color = score >= maxScore - 10 ? '#16a34a' : '#dc2626';
+        document.getElementById('final-score').innerText = `Calificación Final: ${score} / 85`;
+        document.getElementById('final-score').style.color = score >= 68 ? '#16a34a' : '#dc2626'; // 80% de 85 es 68.
     }
 
     function formatName(id) {
-        const d = { "remove_aretes": "Retirar Aretes", "remove_reloj": "Retirar Reloj", "cofia": "Cofia", "cubrebocas": "Cubrebocas", "zapatones1": "Zapatones Grises", "wash": "Lavado", "dry": "Secado", "gel": "Gel", "guantes": "Guantes", "alcohol": "Sanitizar Guantes", "escafandra": "Escafandra", "overol": "Overol", "zapatones2": "Zapatones Estériles", "goggles": "Goggles", "error_gorra": "Prenda Contaminada", "error_basura": "Tocar Basura", "error_banca": "Sentarse/Apoyarse" };
-        return d[id] || id;
+        const d = { "remove_aretes": "Retirar Aretes", "remove_reloj": "Retirar Reloj", "cofia": "Cofia", "cubrebocas": "Cubrebocas", "zapatones1": "Zapatones Grises", "wash": "Lavado", "dry": "Secado", "gel": "Gel", "guantes": "Guantes Iniciales", "alcohol": "Sanitizar Guantes", "escafandra": "Escafandra", "overol": "Overol Estéril", "zapatones2": "Zapatones Estériles", "goggles": "Goggles", "guantes_finales": "Guantes Finales", "verificar_vestido": "Verificación (Espejo)", "error_gorra": "Prenda Contaminada", "error_basura": "Tocar Basura", "error_banca": "Sentarse/Apoyarse" }; return d[id] || id;
     }
-
-    updatePlayerState();
-    renderRoom(0);
 </script>
 </body>
 </html>
