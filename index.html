@@ -18,6 +18,14 @@
             align-items: center; justify-content: center; height: 100vh; overflow: hidden;
         }
 
+        /* --- BOTÓN DE REGRESO GLOBAL --- */
+        .back-btn {
+            background: #334155; color: white; border: 1px solid #475569; padding: 6px 12px;
+            border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer;
+            transition: all 0.2s; display: flex; align-items: center; gap: 5px;
+        }
+        .back-btn:active { background: #475569; transform: scale(0.95); }
+
         /* --- PANTALLA DE INICIO --- */
         #start-screen {
             background: var(--wall); width: 100%; max-width: 450px; padding: 30px;
@@ -45,12 +53,12 @@
         }
         .poe-header {
             background: #e2e8f0; border-bottom: 2px solid #94a3b8; padding: 15px; text-align: center;
+            position: relative;
         }
+        .poe-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .poe-header h3 { font-size: 14px; margin-bottom: 5px; color: #334155; }
         .poe-header p { font-size: 11px; color: #475569; font-weight: bold; }
-        .poe-content {
-            flex: 1; overflow-y: auto; padding: 20px; font-size: 12px; line-height: 1.5;
-        }
+        .poe-content { flex: 1; overflow-y: auto; padding: 20px; font-size: 12px; line-height: 1.5; }
         .poe-section { border: 1px solid #cbd5e1; padding: 15px; margin-bottom: 15px; background: #f8fafc; }
         .poe-section h4 { background: #cbd5e1; padding: 5px; text-align: center; margin: -15px -15px 10px -15px; font-size: 12px; }
         .poe-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -59,7 +67,6 @@
         .poe-table .num { font-weight: bold; text-align: center; width: 30px; }
         .poe-table .pts { font-weight: bold; text-align: center; width: 40px; color: #0284c7; }
         .poe-table .main-step { background: #f1f5f9; font-weight: bold; text-align: center; }
-        .poe-footer-bar { padding: 15px; background: white; border-top: 1px solid #cbd5e1; text-align: center; }
 
         /* --- MODO EVALUACIÓN (EXAMEN) --- */
         #exam-wrapper {
@@ -67,7 +74,10 @@
             border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
             display: none; flex-direction: column; color: #0f172a; overflow: hidden;
         }
-        .exam-header { background: #1e293b; color: white; padding: 15px; text-align: center; font-weight: bold; }
+        .exam-header { 
+            background: #1e293b; color: white; padding: 15px; text-align: center; font-weight: bold;
+            display: flex; align-items: center; justify-content: space-between;
+        }
         .question-container { padding: 20px; flex: 1; overflow-y: auto; }
         .question-text { font-size: 15px; font-weight: bold; margin-bottom: 20px; line-height: 1.4; color: #1e293b; }
         .option-btn {
@@ -78,7 +88,6 @@
         .option-btn.correct { background: #dcfce7; border-color: #22c55e; color: #166534; font-weight: bold; }
         .option-btn.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
         .option-btn:disabled { cursor: not-allowed; }
-        
         .exam-footer { padding: 15px; border-top: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; background: white;}
         .next-btn { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: none; }
 
@@ -93,7 +102,6 @@
             background: #0f172a; padding: 12px; display: flex; flex-direction: column; gap: 8px;
             font-size: 14px; font-weight: bold; border-bottom: 2px solid var(--accent);
         }
-        
         .header-row { display: flex; justify-content: space-between; align-items: center; }
         #inventory-bar { display: flex; gap: 5px; height: 30px; background: #1e293b; padding: 2px; border-radius: 4px; }
         .inv-slot { width: 26px; height: 26px; background: #334155; border-radius: 4px; padding: 2px; }
@@ -171,12 +179,13 @@
     </button>
 </div>
 
-<!-- MODO VISOR POE (4 Páginas Completas) -->
+<!-- MODO VISOR POE -->
 <div id="poe-wrapper">
     <div class="poe-header">
-        <div style="float:left; font-weight:bold; color:#0f172a;">SAFE</div>
-        <div style="float:right; font-size:11px;">Versión 06</div>
-        <div style="clear:both;"></div>
+        <div class="poe-header-top">
+            <button class="back-btn" onclick="location.reload()">⬅ Menú</button>
+            <div style="font-size:11px; color:#475569;">Versión 06</div>
+        </div>
         <h3>GESSM-F02-I156-GRL</h3>
         <p>EVALUACIÓN PRÁCTICA DE LA TÉCNICA DE VESTIDO PARA ÁREAS ASÉPTICAS UTILIZANDO BAJO UNIFORME Y UNIFORME ESTÉRIL DESECHABLE TLT</p>
     </div>
@@ -292,7 +301,6 @@
                 <tr><td class="num">15.2</td><td>No sanitiza sus guantes después de manipular los goggles, sin embargo rectifica y lo corrige.</td><td class="pts">3</td></tr>
                 <tr><td class="num">15.3</td><td>No lo hace.</td><td class="pts">0</td></tr>
                 
-                <!-- PÁGINA 4 AÑADIDA -->
                 <tr><td colspan="3" class="main-step">16 COLOCACIÓN DE GUANTES FINALES (VESTIDOR 3)</td></tr>
                 <tr><td class="num">16.1</td><td>Verifica que es la talla correcta, al colocarlos evita tocar parte externa de los guantes y no se rompen</td><td class="pts">5</td></tr>
                 <tr><td class="num">16.2</td><td>Verifica que es la talla correcta, pero al colocarlos toca la parte externa o se rompen</td><td class="pts">3</td></tr>
@@ -326,21 +334,20 @@
                 <p>TOTAL, DE PUNTOS: <u style="font-weight:bold;"> 85 </u> &nbsp;&nbsp; PUNTOS OBTENIDOS: _______ &nbsp;&nbsp; PORCENTAJE: _______</p>
                 <br>
                 <p>NOMBRE Y FIRMA DEL PERSONAL EVALUADO: ___________________________________________</p>
-                <p>NOMBRE Y FIRMA EVALUADOR: <u style="font-family: 'Brush Script MT', cursive; font-size: 16px;"></u></p>
+                <p>NOMBRE Y FIRMA EVALUADOR: <u style="font-family: 'Brush Script MT', cursive; font-size: 16px;">Alexis Enrique Ramirez Palacios</u></p>
                 <p>NOMBRE Y FIRMA DEL SUPERVISOR DE MICROBIOLOGÍA: ___________________________________</p>
                 <p>NOMBRE Y FIRMA DEL JEFE DE OPERACIONES: _________________________________________</p>
             </div>
         </div>
-
-    </div>
-    <div class="poe-footer-bar">
-        <button class="mode-btn play" style="width:100%; border:none; background: #0f172a; padding: 12px; font-size: 14px; border-radius:6px; color: white; cursor: pointer;" onclick="location.reload()">Regresar al Menú Principal</button>
     </div>
 </div>
 
 <!-- MODO EVALUACIÓN -->
 <div id="exam-wrapper">
-    <div class="exam-header">Evaluación Teórica: Áreas Asépticas</div>
+    <div class="exam-header">
+        <button class="back-btn" onclick="location.reload()">⬅ Menú</button>
+        <span style="flex: 1; text-align: center; padding-right: 60px;">Examen Teórico</span>
+    </div>
     <div class="question-container">
         <div style="font-size: 12px; color: #64748b; font-weight: bold; margin-bottom: 10px;" id="exam-progress">Pregunta 1 / 20</div>
         <div class="question-text" id="exam-q-text"></div>
@@ -356,8 +363,9 @@
 <div id="game-wrapper">
     <div id="status-bar">
         <div class="header-row">
+            <button class="back-btn" onclick="location.reload()">⬅ Menú</button>
             <span id="room-name">Filtro de Ingreso</span>
-            <span style="font-size: 12px; color: #94a3b8;" onclick="location.reload()" style="cursor:pointer;">Salir ✖</span>
+            <span style="font-size: 12px; color: #94a3b8;">POE GESSM-F02-I156</span>
         </div>
         <div id="inventory-bar"></div>
     </div>
@@ -641,7 +649,7 @@
 
     function showExamResults() {
         const maxScore = examQuestions.length * 5; 
-        const passed = examScore >= maxScore * 0.8; // 80% para aprobar como en la vida real
+        const passed = examScore >= maxScore * 0.8; // 80% para aprobar
         const color = passed ? '#16a34a' : '#dc2626';
         
         document.querySelector('.question-container').innerHTML = `
@@ -820,7 +828,6 @@
     }
 
     function tryEnterRoom(target) {
-        // Validación de prerrequisitos
         if (pState.room === 0 && (pState.looks.aretes || pState.looks.reloj)) { showMsg("⚠️ ACCESO DENEGADO: Tócate para quitarte los accesorios antes de cruzar."); playerEl.classList.add('error-blink'); setTimeout(() => playerEl.classList.remove('error-blink'), 800); return; }
         renderRoom(target);
     }
@@ -830,9 +837,7 @@
         const content = document.getElementById('report-content');
         let score = 0; let expIdx = 0; let html = "";
         
-        // Flexibilidad en el orden de los prerrequisitos y el filtro inicial
         const flexSteps = ['remove_aretes', 'remove_reloj', 'cofia', 'cubrebocas', 'zapatones1'];
-        // Secuencia estricta de 15 pasos restantes (del lavado hasta la verificación)
         const expectedSequence = ['wash', 'dry', 'gel', 'guantes', 'alcohol', 'escafandra', 'alcohol', 'overol', 'alcohol', 'zapatones2', 'alcohol', 'goggles', 'alcohol', 'guantes_finales', 'verificar_vestido'];
         let doneFlex = [];
 
@@ -848,19 +853,15 @@
             }
         });
 
-        // Penalizar lo que faltó
         while(expIdx < expectedSequence.length) { html += `<div class="report-row score-bad"><span>❌ Omitió: ${formatName(expectedSequence[expIdx])}</span><span>0 pts</span></div>`; expIdx++; }
         if (pState.escaMalPuesta) { html += `<div class="report-row score-bad"><span>❌ Finalizó con visión tapada</span><span>-5 pts</span></div>`; score -= 5; }
 
-        // El score máximo en el POE es 85 pts (17 pasos * 5 pts). 
-        // Mi simulador da 10 pts extra por quitarse los aretes y reloj (prerrequisitos).
-        // Ajustamos la etiqueta visual para que concuerde con el máximo posible de la suma interna (85 pts oficiales + 10 pre-req).
-        let maxScore = (3 + expectedSequence.length) * 5; // 3 prendas iniciales + 15 pasos = 90 pts (Excluyendo aretes visualmente para no confundir con los 85 pts oficiales).
-        if(score > 85) score = 85; // Capeado a la perfección del documento.
+        let maxScore = (3 + expectedSequence.length) * 5; 
+        if(score > 85) score = 85; 
         
         content.innerHTML = html;
         document.getElementById('final-score').innerText = `Calificación Final: ${score} / 85`;
-        document.getElementById('final-score').style.color = score >= 68 ? '#16a34a' : '#dc2626'; // 80% de 85 es 68.
+        document.getElementById('final-score').style.color = score >= 68 ? '#16a34a' : '#dc2626'; 
     }
 
     function formatName(id) {
